@@ -1,0 +1,34 @@
+from setuptools import setup, find_packages
+import pathlib
+
+here = pathlib.Path(__file__).parent.resolve()
+
+# Get the long description from the README file
+long_description = (here / 'README.md').read_text(encoding='utf-8')
+
+setup(
+    name='tmma',
+    version='0.1.0',
+    description='MA plots and TMM for python',  # Optional
+    long_description=long_description,  # Optional
+    long_description_content_type='text/markdown',
+
+    url='https://github.com/lukauskas/tmma',
+
+    author='Saulius Lukauskas',
+
+
+    package_dir={'': 'src'},
+    packages=find_packages(where='src'),
+
+    python_requires='>=3.8, <4',
+
+    install_requires=['numpy',
+                      'pandas',
+                      'matplotlib',
+                      'scipy'],
+
+    extras_require={  # Optional
+        'test': ['hypothesis', 'rpy2'],
+    },
+)
