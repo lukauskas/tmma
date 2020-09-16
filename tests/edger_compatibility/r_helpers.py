@@ -1,10 +1,10 @@
 """
 Helpers from dealing with edgeR
 """
+import numpy as np
 from rpy2 import robjects
 from rpy2.robjects import numpy2ri
 from rpy2.robjects.packages import importr
-import numpy as np
 
 _r_edger = importr('edgeR')
 
@@ -56,3 +56,16 @@ def r_edger_calcNormFactors(counts, lib_size=None, *args, **kwargs):
 
     r_answer = _r_edger.calcNormFactors(r_counts, *args, **kwargs)
     return numpy2ri.rpy2py(r_answer)
+
+def r_edger_calcFactorTMM(obs, ref, lib_size_obs=None, lib_size_ref=None, *args, **kwargs):
+
+    r_obs = to_r_vector(obs)
+    r_ref = to_r_vector(ref)
+
+    kwargs = kwargs.copy()
+    if lib_size_obs is not None:
+        kwargs['libsize.obs'] = lib_size_obs
+    if lib_size_ref is not None:
+        kwargs['libsize.ref'] = lib_size_ref
+
+    return _r_edger._calcFactorTMM(r_obs, r_ref, *args, **kwargs)

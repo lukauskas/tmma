@@ -137,9 +137,15 @@ def _calc_factor_tmm(obs, ref,
     logR, absE = _ma_stats(obs, ref, lib_size_obs, lib_size_ref)
 
     # Remove all of the infinities that appear
-    mask = np.isinf(logR) | np.isinf(absE)
+    mask = np.isinf(logR) | np.isnan(logR)
+    mask |= np.isinf(absE) | np.isnan(absE)
+
     # Also remove regions below "A" cutoff
     mask |= absE <= a_cutoff
+
+    # Nothing wsa left :(
+    if (~mask).sum() == 0:
+        return 1.0
 
     logR = logR[~mask]
     absE = absE[~mask]
@@ -224,7 +230,7 @@ def _tmm_normalise_unscaled(counts,
     counts = counts[~all_zero]
 
     # Degenerate cases, nothing to normalise here
-    if len(counts) < 2:
+    if len(counts) < 1:
         return np.ones(counts.shape[1])
 
     factor_quantiles = _calc_factor_quantile(data=counts,

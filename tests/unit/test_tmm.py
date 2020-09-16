@@ -83,16 +83,17 @@ class TestTMMNormalisation(unittest.TestCase):
         actual_answer = tmm_normalise(counts)
         assert_array_equal(actual_answer, expected_answer)
 
-        # Degenerate - only one sample
-        counts = np.array([[1, 2, 3, 4]])
+        # Degenerate - only one column
+        counts = np.array([[1], [2], [3]])
+        actual_answer = tmm_normalise(counts)
+        assert_array_equal(actual_answer, [1.0])
+
+        # Degenerate - this actually collapses to zero samples
+        # as the zero-row is removed
+        counts = np.array([[0, 0, 0, 0]])
         actual_answer = tmm_normalise(counts)
         assert_array_equal(actual_answer, expected_answer)
 
-        # Degenerate - this actually collapses to only one sample
-        # as the zero-row is removed
-        counts = np.array([[0, 0, 0, 0], [1, 2, 3, 4]])
-        actual_answer = tmm_normalise(counts)
-        assert_array_equal(actual_answer, expected_answer)
 
     def test_scaling_of_factors(self):
 
@@ -317,16 +318,7 @@ class TestCalcFactorTMM(unittest.TestCase):
         assert_array_equal(expected_keep, actual_keep)
 
     def test_tmm_trim_default_params_edge_case(self):
-        # m_values = [
-        #     0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
-        #     0.8744691, 2.0000000, 1.5849625, 2.5849625, 1.8073549, 1.3219281,
-        #     0.6780719, 0.8073549, 1.1699250, 0.5849625, 0.5849625, 0.2223924,
-        #     0.2630344, -0.2223924, 1.3219281, 1.1375035, 3.3219281, 1.7004397,
-        #     0.2223924, 1.5849625, 0.4854268, -0.4150375, 0.4150375, -1.4150375,
-        #     0.5849625, 1.5849625, 0.3219281, 1.4594316, 1.4150375, 1.8073549,
-        #     0.3219281, 1.1375035, 1.4594316, 1.0000000, 2.7004397, 0.5849625,
-        #     1.8073549, 1.5849625, 0.2223924, 1.0000000, 1.4594316, -0.8073549,
-        # ]
+
         m_values = [
             0.169925, -1., -0.73696559, -3., -0.22239242, 0.,
             0.87446912, 2., 1.5849625, 2.5849625, 1.80735492, 1.32192809,
@@ -337,18 +329,7 @@ class TestCalcFactorTMM(unittest.TestCase):
             0.32192809, 1.13750352, 1.45943162, 1., 2.70043972, 0.5849625,
             1.80735492, 1.5849625, 0.22239242, 1., 1.45943162, -0.80735492
         ]
-        # a_values = [
-        #     -3.558894, -4.558894, -4.690411, -5.143856, -3.947697,
-        #     -3.836501, -3.621659, -4.643856, -4.266412, -4.351375,
-        #     -4.740179, -3.982892, -3.982892, -4.240179, -4.058894,
-        #     -4.351375, -3.766412, -3.947697, -4.190411, -3.947697,
-        #     -4.982892, -3.753176, -4.982892, -3.793636, -3.947697,
-        #     -4.266412, -4.079215, -3.851375, -4.851375, -4.351375,
-        #     -4.351375, -4.851375, -4.482892, -3.914140, -4.351375,
-        #     -4.740179, -4.482892, -3.753176, -3.914140, -3.821928,
-        #     -4.293636, -4.351375, -4.740179, -4.266412, -3.947697,
-        #     -4.143856, -3.914140, -4.240179
-        # ]
+
         a_values = [
              -3.55889369, -4.55889369, -4.69041089, -5.14385619, -3.94769748,
              -3.83650127, -3.62165913, -4.64385619, -4.26641244, -4.35137494,
@@ -451,6 +432,26 @@ class TestCalcFactorTMM(unittest.TestCase):
                                 sum_trim=sum_trim)
 
         assert_array_equal(expected_keep, actual_keep)
+
+    def test_zero_edge_case(self):
+
+        obs = np.array([0, 0])
+        ref = np.array([0, 0])
+
+        expected_result = 1.0
+
+        actual_result = _calc_factor_tmm(obs, ref)
+        assert_array_equal(expected_result, actual_result)
+
+    def test_almost_zero_edge_case(self):
+
+        obs = np.array([2, 1])
+        ref = np.array([1, 1])
+
+        expected_result = 1.036271
+        actual_result = _calc_factor_tmm(obs, ref)
+
+        assert_allclose(expected_result, actual_result, rtol=1e-6)
 
 class TestMAStats(unittest.TestCase):
 
