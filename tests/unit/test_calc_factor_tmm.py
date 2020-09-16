@@ -345,3 +345,26 @@ class TestCalcFactorTMM(unittest.TestCase):
 
         actual_result_no_weighting = _calc_factor_tmm(obs, ref, ls_obs, ls_ref, do_weighting=False)
         assert_allclose(expected_result_no_weighting, actual_result_no_weighting, rtol=1e-6)
+
+    def test_data_type_edge_case(self):
+
+        # These conditions trigger an underflow eror
+        obs_uint32 = np.array([2, 3], dtype=np.uint32)
+        ref_uint32 = np.array([3, 3], dtype=np.uint32)
+
+        obs_float = np.array([2, 3], dtype=np.float)
+        ref_float = np.array([3, 3], dtype=np.float)
+
+        # Library sizes
+        ls_obs = 1
+        ls_ref = 1
+
+        expected_result = 0.8055355
+
+        # This will work
+        actual_result_float = _calc_factor_tmm(obs_float, ref_float, ls_obs, ls_ref)
+        assert_allclose(expected_result, actual_result_float, rtol=1e-6)
+
+        # At the time of writing this somehow fails
+        actual_result_uint = _calc_factor_tmm(obs_uint32, ref_uint32, ls_obs, ls_ref)
+        assert_allclose(expected_result, actual_result_uint, rtol=1e-6)

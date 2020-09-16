@@ -1,8 +1,9 @@
 import unittest
 
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 from tmma.tmm import _ma_stats, _asymptotic_variance
+from tmma.warnings import AsymptoticVarianceWarning
 
 
 class TestMAStats(unittest.TestCase):
@@ -163,3 +164,33 @@ class TestMAStats(unittest.TestCase):
 
         # second library size is zero
         self.assertRaises(ValueError, _ma_stats, obs, ref, 1, 0)
+
+    def test_asymptotic_variance_is_not_influenced_by_dtype(self):
+
+        # This triggers underflow error for uint32
+        obs_uint32 = np.array([2, 3], dtype=np.uint32)
+        ref_uint32 = np.array([3, 3], dtype=np.uint32)
+
+        obs_float = np.array([2, 3], dtype=np.float)
+        ref_float = np.array([3, 3], dtype=np.float)
+
+        # Library sizes
+        ls_obs = 1
+        ls_ref = 1
+
+        # This will work
+        result_float = _asymptotic_variance(obs_float, ref_float, ls_obs, ls_ref)
+        # At the time of writing this somehow fails
+        result_uint = _asymptotic_variance(obs_uint32, ref_uint32, ls_obs, ls_ref)
+        assert_array_equal(result_float, result_uint)
+
+    def test_asymptotic_variance_warns_when_library_size_smaller_than_observations(self):
+
+        obs_float = np.array([100, 3], dtype=np.float)
+        ref_float = np.array([3, 3], dtype=np.float)
+
+        ls_obs = 5
+        ls_ref = 10
+
+        with self.assertWarns(AsymptoticVarianceWarning) as cm:
+            _asymptotic_variance(obs_float, ref_float, ls_obs, ls_ref)

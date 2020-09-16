@@ -68,4 +68,5 @@ def r_edger_calcFactorTMM(obs, ref, lib_size_obs=None, lib_size_ref=None, *args,
     if lib_size_ref is not None:
         kwargs['libsize.ref'] = lib_size_ref
 
-    return _r_edger._calcFactorTMM(r_obs, r_ref, *args, **kwargs)
+    r_float = _r_edger._calcFactorTMM(r_obs, r_ref, *args, **kwargs)
+    return numpy2ri.rpy2py(r_float)[0]

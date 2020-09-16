@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 from scipy.stats import rankdata
-from tmma.warnings import InfiniteWeightsWarning
+from tmma.warnings import InfiniteWeightsWarning, AsymptoticVarianceWarning
 
 _P_FOR_TMM = 0.75
 
@@ -43,6 +43,9 @@ def _ma_stats(obs,
     :return: tuple (m, a)
     """
 
+    if np.abs(lib_size_obs) <= 1e-6 or np.abs(lib_size_ref) <= 1e-6:
+        raise ValueError("One of library sizes is zero")
+
     log2_normed_obs = np.log2(obs) - np.log2(lib_size_obs)
     log2_normed_ref = np.log2(ref) - np.log2(lib_size_ref)
 
@@ -65,6 +68,18 @@ def _asymptotic_variance(obs, ref,
     :param lib_size_ref:
     :return:
     """
+    # Cast to float
+    obs = np.asarray(obs, dtype=float)
+    ref = np.asarray(ref, dtype=float)
+
+    lib_size_obs = float(lib_size_obs)
+    lib_size_ref = float(lib_size_ref)
+
+    if np.any(obs >= lib_size_obs) or np.any(ref >= lib_size_ref):
+        warnings.warn("Some of the observations are greater than library size. "
+                      "Asymptotic variance assumptions may be violated.",
+                      AsymptoticVarianceWarning)
+
     return (lib_size_obs - obs) / lib_size_obs / obs + (lib_size_ref - ref) / lib_size_ref / ref
 
 
@@ -127,8 +142,8 @@ def _calc_factor_tmm(obs, ref,
     :return:
     """
 
-    obs = np.asarray(obs)
-    ref = np.asarray(ref)
+    obs = np.asarray(obs, dtype=float)
+    ref = np.asarray(ref, dtype=float)
 
     if lib_size_obs is None:
         lib_size_obs = np.sum(obs)
