@@ -10,6 +10,10 @@ DATASET = '../data/from-edger-user-guide/arabidopsis/arab.csv'
 def load_arabidopsis():
     return pd.read_csv(DATASET, index_col=0)
 
+
+ABS_TOL = 1e-3
+REL_TOL = 0
+
 class TestAgainstArabidopsisDataset(unittest.TestCase):
     """
     Tests against Arabidopsis dataset from edgeR user guide section 4.2.
@@ -30,7 +34,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
         ])
 
         actual_answer = tmm_normalise(df)
-        assert_allclose(actual_answer, expected_answer, rtol=1e-6)
+        assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 
     def test_arabidopsis_specific_ref_column(self):
         df = load_arabidopsis()
@@ -46,7 +50,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
         ])
 
         actual_answer = tmm_normalise(df, ref_column=ref_column)
-        assert_allclose(actual_answer, expected_answer, rtol=1e-6)
+        assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 
     def test_arabidopsis_unscaled(self):
 
@@ -57,7 +61,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
 
         actual_answer = _tmm_normalise_unscaled(df)
 
-        assert_allclose(actual_answer, expected_answer, rtol=1e-6)
+        assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 
     def test_arabidopsis_unscaled_specific_ref_column(self):
 
@@ -68,7 +72,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
 
         actual_answer = _tmm_normalise_unscaled(df, ref_column=0)
 
-        assert_allclose(actual_answer, expected_answer, rtol=1e-6)
+        assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 
 
 

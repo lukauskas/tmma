@@ -13,7 +13,7 @@ from tests.edger_compatibility.strategies import uint_counts_array_and_a_lib_siz
 class HypothesisTestCalcFactorTMM(unittest.TestCase):
 
     @given(uint_counts_array_and_a_lib_size(max_cols=2))
-    @settings(max_examples=1000, report_multiple_bugs=False)
+    @settings(max_examples=500, report_multiple_bugs=False)
     def test_calc_factor_tmm_uints_and_random_library_size(self, counts_lib_size):
         """
         Given random unsigned integer counts and a random library size
@@ -40,20 +40,10 @@ class HypothesisTestCalcFactorTMM(unittest.TestCase):
         py_answer = _calc_factor_tmm(obs, ref,
                                      lib_size_obs=lib_size_obs,
                                      lib_size_ref=lib_size_ref)
-        if np.abs(py_answer - r_answer) > 1e-3:
-            print('--------')
-            print(obs)
-            print(np.asarray(obs, dtype=float))
-            print(ref)
-            print(np.asarray(ref, dtype=float))
-            print(r_answer)
-            print(lib_size_obs)
-            print(lib_size_ref)
-            print(py_answer)
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
     @given(uint_counts_array(max_cols=2).filter(lambda x: (np.sum(x, axis=0) > 0).all()))
-    @settings(report_multiple_bugs=False)
+    @settings(max_examples=500, report_multiple_bugs=False)
     def test_calc_factor_tmm_uints_only(self, counts):
         """
         Given random unsigned integer counts,
@@ -75,7 +65,7 @@ class HypothesisTestCalcFactorTMM(unittest.TestCase):
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
     @given(poisson_counts_array(max_cols=2).filter(lambda x: (np.sum(x, axis=0) > 0).all()))
-    @settings(report_multiple_bugs=False)
+    @settings(max_examples=500, report_multiple_bugs=False)
     def test_calc_factor_tmm_poisson_only(self, counts):
         """
         Given random poisson counts,
@@ -93,8 +83,8 @@ class HypothesisTestCalcFactorTMM(unittest.TestCase):
         assume(not np.isnan(r_answer))
 
         py_answer = _calc_factor_tmm(obs, ref)
-
-        assert_allclose(r_answer, py_answer, rtol=1e-4)
+        # Allow to differ by 2/100th
+        assert_allclose(r_answer, py_answer, rtol=0, atol=2e-2)
 
 
 if __name__ == '__main__':

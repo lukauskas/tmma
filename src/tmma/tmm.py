@@ -6,6 +6,7 @@ from scipy.stats import rankdata
 from tmma.warnings import InfiniteWeightsWarning, AsymptoticVarianceWarning
 
 _P_FOR_TMM = 0.75
+_ARRAY_DTYPE = 'd'  # Double
 
 def _calc_factor_quantile(data, lib_sizes, p: float = 0.75):
     """
@@ -69,8 +70,8 @@ def _asymptotic_variance(obs, ref,
     :return:
     """
     # Cast to float
-    obs = np.asarray(obs, dtype=float)
-    ref = np.asarray(ref, dtype=float)
+    obs = np.asarray(obs, dtype=_ARRAY_DTYPE)
+    ref = np.asarray(ref, dtype=_ARRAY_DTYPE)
 
     lib_size_obs = float(lib_size_obs)
     lib_size_ref = float(lib_size_ref)
@@ -107,6 +108,7 @@ def _tmm_trim(m_values, a_values,
     # This is needed to give the same answers as R
     # In practice it doesn't change much
     # Except in a few edge cases
+    # see `test_with_custom_lib_sizes`
     m_values = np.round(m_values, 6)
     a_values = np.round(a_values, 6)
 
@@ -142,8 +144,8 @@ def _calc_factor_tmm(obs, ref,
     :return:
     """
 
-    obs = np.asarray(obs, dtype=float)
-    ref = np.asarray(ref, dtype=float)
+    obs = np.asarray(obs, dtype=_ARRAY_DTYPE)
+    ref = np.asarray(ref, dtype=_ARRAY_DTYPE)
 
     if lib_size_obs is None:
         lib_size_obs = np.sum(obs)
@@ -233,7 +235,7 @@ def _tmm_normalise_unscaled(counts,
     :return:
     """
 
-    counts = np.asarray(counts, dtype=float)
+    counts = np.asarray(counts, dtype=_ARRAY_DTYPE)
 
     if np.isnan(counts).any() or np.isinf(counts).any():
         raise ValueError("Your counts contain NaNs and/or infinities. This is not allowed")
@@ -243,7 +245,7 @@ def _tmm_normalise_unscaled(counts,
     if lib_sizes is None:
         lib_sizes = np.sum(counts, 0)
     else:
-        lib_sizes = np.asarray(lib_sizes, dtype=float)
+        lib_sizes = np.asarray(lib_sizes, dtype=_ARRAY_DTYPE)
         if np.isnan(lib_sizes).any() or np.isinf(lib_sizes).any():
             raise ValueError("Your lib size contains NaNs and/or infinities. This is not allowed")
 

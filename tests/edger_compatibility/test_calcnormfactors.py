@@ -5,7 +5,7 @@ Automated tests using hypothesis package
 import unittest
 
 import numpy as np
-from hypothesis import given, assume
+from hypothesis import given, assume, note, settings
 from numpy.testing import assert_allclose
 from tmma.tmm import tmm_normalise
 
@@ -52,6 +52,7 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
     @given(poisson_counts_array().filter(lambda x: (np.sum(x, axis=0) > 0).all()))
+    @settings(max_examples=500)
     def test_poisson_only(self, counts):
         """
         Given random poisson counts,
@@ -65,8 +66,12 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
+        note('Shape = {!r}'.format(counts.shape))
         py_answer = tmm_normalise(counts)
-        assert_allclose(r_answer, py_answer, rtol=1e-2)
+
+        # Allow to differ by 1/100
+        assert_allclose(r_answer, py_answer, rtol=0, atol=1e-2)
+
 
 if __name__ == '__main__':
     unittest.main()

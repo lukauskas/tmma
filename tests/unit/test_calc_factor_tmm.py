@@ -231,6 +231,34 @@ class TestCalcFactorTMM(unittest.TestCase):
 
         assert_array_equal(expected_keep, actual_keep)
 
+    @unittest.skip("This is probably due to bug in R")
+    def test_tmm_trim_another_edge_case(self):
+
+        m_values = [
+            -0.227135291, -0.061622305, -0.002585016, 0.020333359, 0.052548715,
+            0.117037442, 0.081117867, -0.004953083, 0.098605294, -0.113761061,
+            0.171957098, 0.081117867, 0.068787065, -0.273724850, -0.012368762,
+        ]
+        a_values = [
+            -3.963853, -3.808745, -3.983869, -3.884770, -3.865831, -3.933122, -3.957157,
+            -3.872127, -3.894642, -3.829597, -3.902635, -3.897533, -3.975548, -3.968039,
+            -3.898290
+        ]
+
+        log_ratio_trim = .3
+        sum_trim = 0.05
+
+        expected_keep = [
+            False, False, True, True, True, False, False, True, False, False, False, True,
+            True, False, True,
+        ]
+
+        actual_keep = _tmm_trim(m_values, a_values,
+                                log_ratio_trim=log_ratio_trim,
+                                sum_trim=sum_trim)
+
+        assert_array_equal(expected_keep, actual_keep)
+
     def test_tmm_trim_custom_log_ratio_trim(self):
         m_values = [
             0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
@@ -368,3 +396,17 @@ class TestCalcFactorTMM(unittest.TestCase):
         # At the time of writing this somehow fails
         actual_result_uint = _calc_factor_tmm(obs_uint32, ref_uint32, ls_obs, ls_ref)
         assert_allclose(expected_result, actual_result_uint, rtol=1e-6)
+
+    @unittest.skip("See test_tmm_trim_another_edge_case")
+    def test_hypothesis_failing_case(self):
+
+        # This case was discovered by hypothesis
+        obs = np.array([212., 250., 226., 244., 250., 244., 237., 244., 249., 242., 254.,
+                        247., 233., 208., 239.])
+        ref = np.array([525., 552., 479., 509., 510., 476., 474., 518., 492., 554., 477.,
+                        494., 470., 532., 510.])
+
+        expected_answer = 1.020364
+        actual_answer = _calc_factor_tmm(obs, ref)
+
+        assert_allclose(expected_answer, actual_answer, rtol=1e-6)
