@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_allclose
-from tmma.tmm import tmm_normalise
+from tmma.tmm import tmm_normalise, _tmm_normalise_unscaled
 
 DATASET = '../data/from-edger-user-guide/arabidopsis/arab.csv'
 
@@ -48,7 +48,27 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
         actual_answer = tmm_normalise(df, ref_column=ref_column)
         assert_allclose(actual_answer, expected_answer, rtol=1e-6)
 
+    def test_arabidopsis_unscaled(self):
 
+        df = load_arabidopsis()
+        expected_answer = np.array([
+            1.0233674, 1.0712034, 0.9574362, 1.1084911, 1.1340377, 1.0000000,
+        ])
+
+        actual_answer = _tmm_normalise_unscaled(df)
+
+        assert_allclose(actual_answer, expected_answer, rtol=1e-6)
+
+    def test_arabidopsis_unscaled_specific_ref_column(self):
+
+        df = load_arabidopsis()
+        expected_answer = np.array([
+            1.0000000, 1.0147745, 0.9489405, 1.0807636, 1.1186484, 0.9771662
+        ])
+
+        actual_answer = _tmm_normalise_unscaled(df, ref_column=0)
+
+        assert_allclose(actual_answer, expected_answer, rtol=1e-6)
 
 
 

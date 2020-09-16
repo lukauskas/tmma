@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal, assert_allclose
 from tmma.tmm import tmm_normalise, _calc_factor_quantile, _calc_factor_tmm, _ma_stats, \
-    _asymptotic_variance, _tmm_trim
+    _asymptotic_variance, _tmm_trim, _scale_tmm_factors
 
 
 class TestTMMNormalisation(unittest.TestCase):
@@ -94,6 +94,18 @@ class TestTMMNormalisation(unittest.TestCase):
         actual_answer = tmm_normalise(counts)
         assert_array_equal(actual_answer, expected_answer)
 
+    def test_scaling_of_factors(self):
+
+        factors_unscaled = np.array([
+            1.0000000, 1.0147745, 0.9489405, 1.0807636, 1.1186484, 0.9771662
+        ])
+
+        expected_answer = np.array([
+            0.9787380, 0.9931984, 0.9287641, 1.0577844, 1.0948637, 0.9563897
+        ])
+
+        actual_answer = _scale_tmm_factors(factors_unscaled)
+        assert_allclose(actual_answer, expected_answer)
 
 
 class TestCalcFactorQuantile(unittest.TestCase):

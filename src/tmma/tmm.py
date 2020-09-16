@@ -165,18 +165,27 @@ def _calc_factor_tmm(obs, ref,
     f = np.average(logR, weights=weights)
     return np.power(2, f)
 
+def _scale_tmm_factors(unscaled_factors):
+    """
+    Ensures that factors returned by TMM multiply by one
+    :param unscaled_factors: unscaled factors
+    :return: scaled factors
+    """
+    return unscaled_factors / np.exp(np.mean(np.log(unscaled_factors)))
 
-def tmm_normalise(counts,
-                  lib_sizes=None,
-                  ref_column: Optional[int] = None,
-                  log_ratio_trim: float = 0.3,
-                  sum_trim: float = 0.05,
-                  do_weighting: bool = True,
-                  a_cutoff: float = -1e10
-                  ):
+def _tmm_normalise_unscaled(counts,
+                            lib_sizes=None,
+                            ref_column: Optional[int] = None,
+                            log_ratio_trim: float = 0.3,
+                            sum_trim: float = 0.05,
+                            do_weighting: bool = True,
+                            a_cutoff: float = -1e10):
     """
     Calculate normalisation factors using TMM method.
-    Identical to edgeR::calcNormFactors.
+    Main logic of the `tmm_normalise` function below, however the
+    factors are not scaled to multiply by one, like they are in `tmm_normalise`
+
+    Otherwise behaviour is identical to edgeR::calcNormFactors.
 
     :param counts: numpy array of raw (unnormalised) counts for each of the samples.
                    Genes in rows, samples in columns.
@@ -238,7 +247,38 @@ def tmm_normalise(counts,
 
         factors.append(f_col)
     factors = np.array(factors)
-
-    # Factors should multiply to one
-    factors = factors / np.exp(np.mean(np.log(factors)))
     return factors
+
+def tmm_normalise(counts,
+                  lib_sizes=None,
+                  ref_column: Optional[int] = None,
+                  log_ratio_trim: float = 0.3,
+                  sum_trim: float = 0.05,
+                  do_weighting: bool = True,
+                  a_cutoff: float = -1e10
+                  ):
+    """
+    Calculate normalisation factors using TMM method.
+    Identical to edgeR::calcNormFactors.
+
+    :param counts: numpy array of raw (unnormalised) counts for each of the samples.
+                   Genes in rows, samples in columns.
+    :param lib_sizes: (optional) numpy array of library sizes.
+                      Should be in the same order as columns of `counts`
+    :param ref_column: (optional) reference column to use
+    :param log_ratio_trim: amount of trim to use on M values (log ratios), default: 0.3
+    :param sum_trim: amount of trim to use on combined absolute values (A values), default: 0.05
+    :param do_weighting: whether to compute asymptotic binomial precision weights, default: True
+    :param a_cutoff: cutoff on A values, default: -1e10 (which is equivalent to no cutoff)
+    :return:
+    """
+
+    factors = _tmm_normalise_unscaled(counts,
+                                      lib_sizes=lib_sizes,
+                                      ref_column=ref_column,
+                                      log_ratio_trim=log_ratio_trim,
+                                      sum_trim=sum_trim,
+                                      do_weighting=do_weighting,
+                                      a_cutoff=a_cutoff)
+    # Factors should multiply to one
+    return _scale_tmm_factors(factors)
