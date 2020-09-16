@@ -1,0 +1,2 @@
+class InfiniteWeightsWarning(RuntimeWarning):
+    pass

@@ -1,4 +1,7 @@
+import unittest
+
 from hypothesis import given
+from numpy.testing import assert_allclose
 from tmma.tmm import _calc_factor_tmm
 
 from tests.edger_compatibility.r_helpers import r_edger_calcFactorTMM

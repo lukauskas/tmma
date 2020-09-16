@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 from tmma.tmm import _calc_factor_tmm, _tmm_trim
+from tmma.warnings import InfiniteWeightsWarning
 
 
 class TestCalcFactorTMM(unittest.TestCase):
@@ -313,3 +314,27 @@ class TestCalcFactorTMM(unittest.TestCase):
         actual_result = _calc_factor_tmm(obs, ref)
 
         assert_allclose(expected_result, actual_result, rtol=1e-6)
+
+    def test_infinite_weight_edge_case(self):
+
+        obs = np.array([2, 1])
+        ref = np.array([1, 1])
+
+        # Library sizes
+
+        ls_obs = 1
+        ls_ref = 1
+
+        # These library sizes produce variance of zero
+        # this makes weights infinite, and the factor NA
+        # R defaults to 1.0 in these cases
+        expected_result = 1.0
+        expected_result_no_weighting = 1.414214
+
+        with self.assertWarns(InfiniteWeightsWarning) as cm:
+            actual_result = _calc_factor_tmm(obs, ref, ls_obs, ls_ref)
+
+        assert_allclose(expected_result, actual_result, rtol=1e-6)
+
+        actual_result_no_weighting = _calc_factor_tmm(obs, ref, ls_obs, ls_ref, do_weighting=False)
+        assert_allclose(expected_result_no_weighting, actual_result_no_weighting, rtol=1e-6)

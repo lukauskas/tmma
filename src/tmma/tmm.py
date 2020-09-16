@@ -1,7 +1,9 @@
+import warnings
 from typing import Optional
 
 import numpy as np
 from scipy.stats import rankdata
+from tmma.warnings import InfiniteWeightsWarning
 
 _P_FOR_TMM = 0.75
 
@@ -164,7 +166,18 @@ def _calc_factor_tmm(obs, ref,
 
     if do_weighting:
         # Estimated asymptotic variance
-        weights = 1.0 / _asymptotic_variance(obs, ref, lib_size_obs, lib_size_ref)
+        variance = _asymptotic_variance(obs, ref, lib_size_obs, lib_size_ref)
+        if np.any(variance == 0):
+            warnings.warn("Some weights became infinite due to zero estimated variance. "
+                          "Returning 1.0 to match edgeR behaviour, but consider running "
+                          "the normalisation with `do_weighting=False`",
+                          InfiniteWeightsWarning)
+            # Because sum(weights) will be inf
+            # [anything] / inf = 0
+            # And 2^0 = 1
+            return 1.0
+
+        weights = 1.0 / variance
     else:
         weights = None
 
