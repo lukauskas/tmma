@@ -215,6 +215,7 @@ def _tmm_normalise_unscaled(counts,
     if lib_sizes is None:
         lib_sizes = np.sum(counts, 0)
     else:
+        lib_sizes = np.asarray(lib_sizes, dtype=float)
         if np.isnan(lib_sizes).any() or np.isinf(lib_sizes).any():
             raise ValueError("Your lib size contains NaNs and/or infinities. This is not allowed")
 
