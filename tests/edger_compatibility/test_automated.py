@@ -3,15 +3,16 @@ Automated tests using hypothesis package
 """
 
 import unittest
-from hypothesis import given
-from hypothesis import strategies
+
 import hypothesis.extra.numpy as np_strategies
 import numpy as np
-
-from numpy.testing import assert_array_equal
+from hypothesis import given
+from hypothesis import strategies
+from numpy.testing import assert_allclose
 from tmma.tmm import tmm_normalise
 
 from tests.edger_compatibility.r_helpers import r_edger_calcNormFactors
+
 
 @strategies.composite
 def uint_counts_strategy(draw, max_rows=5_000, max_cols=10):
@@ -49,9 +50,9 @@ def uint_counts_and_libsize_strategy(draw, max_rows=5_000, max_cols=10):
                                        max_cols=max_cols))
     n_cols = counts.shape[1]
     library_size = draw(
-        np_strategies.arrays(dtype=np.uint,
+        np_strategies.arrays(dtype=np.uint32,
                              shape=(n_cols,),
-                             elements=strategies.integers(min_value=1))
+                             elements=strategies.integers(min_value=1, max_value=4294967295))
     )
 
     return counts, library_size
@@ -102,7 +103,7 @@ class HypothesisAutomatedTests(unittest.TestCase):
 
         r_answer = r_edger_calcNormFactors(counts, lib_size=lib_size)
         py_answer = tmm_normalise(counts, lib_sizes=lib_size)
-        assert_array_equal(r_answer, py_answer)
+        assert_allclose(r_answer, py_answer, rtol=1e-6)
 
     @given(uint_counts_strategy())
     def test_uints_only(self, counts):
@@ -114,7 +115,7 @@ class HypothesisAutomatedTests(unittest.TestCase):
         """
         r_answer = r_edger_calcNormFactors(counts)
         py_answer = tmm_normalise(counts)
-        assert_array_equal(r_answer, py_answer)
+        assert_allclose(r_answer, py_answer, rtol=1e-6)
 
     @given(poisson_counts_strategy())
     def test_poisson_only(self, counts):
@@ -127,7 +128,7 @@ class HypothesisAutomatedTests(unittest.TestCase):
         """
         r_answer = r_edger_calcNormFactors(counts)
         py_answer = tmm_normalise(counts)
-        assert_array_equal(r_answer, py_answer)
+        assert_allclose(r_answer, py_answer, rtol=1e-6)
 
 if __name__ == '__main__':
     unittest.main()
