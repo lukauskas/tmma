@@ -14,8 +14,8 @@ DATASET = '../data/from-edger-user-guide/arabidopsis/arab.csv'
 def load_arabidopsis():
     return pd.read_csv(DATASET, index_col=0)
 
-# Allow to differ by 1e-3
-ABS_TOL = 1e-3
+# Allow to differ by 0.01
+ABS_TOL = 1e-2
 REL_TOL = 0
 
 class TestAgainstArabidopsisDataset(unittest.TestCase):
