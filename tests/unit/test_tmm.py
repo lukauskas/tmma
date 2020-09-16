@@ -8,6 +8,31 @@ from tmma.tmm import tmm_normalise, _scale_tmm_factors
 
 class TestTMMNormalisation(unittest.TestCase):
 
+    def test_toy_example_works(self):
+
+        counts = np.array([[1, 4], [2, 5], [3,6]])
+        expected_answer = [1.0276039, 0.9731376]
+
+        actual_answer = tmm_normalise(counts)
+        assert_allclose(expected_answer, actual_answer, rtol=1e-6)
+
+    def test_toy_example_with_libsizes_works(self):
+        counts = np.array([[1, 4], [2, 5], [3, 6]])
+        lib_sizes = np.array([5, 6])
+
+        expected_answer = [0.7276626, 1.3742633]
+
+        actual_answer = tmm_normalise(counts, lib_sizes=lib_sizes)
+        assert_allclose(expected_answer, actual_answer, rtol=1e-6)
+
+    def test_library_sizes_can_be_provided_as_lists(self):
+        counts = np.array([[1, 4], [2, 5], [3, 6]])
+        lib_sizes = [5, 6]
+
+        expected_answer = [0.7276626, 1.3742633]
+
+        actual_answer = tmm_normalise(counts, lib_sizes=lib_sizes)
+        assert_allclose(expected_answer, actual_answer, rtol=1e-6)
 
     def test_providing_nan_counts_throws_valueerror(self):
         ## This is what EdgeR does with NaNs
