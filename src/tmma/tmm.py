@@ -222,23 +222,23 @@ def tmm_normalise(counts,
                                              lib_sizes=lib_sizes,
                                              p=_P_FOR_TMM)
     if ref_column is None:
-        ref_column = np.argmin(factor_quantiles - factor_quantiles.mean())
+        ref_column = np.argmin(np.abs(factor_quantiles - factor_quantiles.mean()))
 
-        factors = []
+    factors = []
 
-        for col in range(n_columns):
-            f_col = _calc_factor_tmm(obs=counts[:, col],
-                                     ref=counts[:, ref_column],
-                                     lib_size_obs=lib_sizes[col],
-                                     lib_size_ref=lib_sizes[ref_column],
-                                     log_ratio_trim=log_ratio_trim,
-                                     sum_trim=sum_trim,
-                                     do_weighting=do_weighting,
-                                     a_cutoff=a_cutoff)
+    for col in range(n_columns):
+        f_col = _calc_factor_tmm(obs=counts[:, col],
+                                 ref=counts[:, ref_column],
+                                 lib_size_obs=lib_sizes[col],
+                                 lib_size_ref=lib_sizes[ref_column],
+                                 log_ratio_trim=log_ratio_trim,
+                                 sum_trim=sum_trim,
+                                 do_weighting=do_weighting,
+                                 a_cutoff=a_cutoff)
 
-            factors.append(f_col)
-        factors = np.array(factors)
+        factors.append(f_col)
+    factors = np.array(factors)
 
-        # Factors should multiply to one
-        factors = factors / np.exp(np.mean(np.log(factors)))
-        return factors
+    # Factors should multiply to one
+    factors = factors / np.exp(np.mean(np.log(factors)))
+    return factors
