@@ -1,6 +1,8 @@
 """
 Helpers from dealing with edgeR
 """
+from typing import Optional
+
 import numpy as np
 from rpy2 import robjects
 from rpy2.robjects import numpy2ri
@@ -37,24 +39,43 @@ def to_r_vector(vector):
     return robjects.FloatVector(vector)
 
 
-def r_edger_calcNormFactors(counts, lib_size=None, *args, **kwargs):
+def r_edger_calcNormFactors(counts,
+                            lib_sizes=None,
+                            ref_column: Optional[int] = None,
+                            log_ratio_trim: float = 0.3,
+                            sum_trim: float = 0.05,
+                            do_weighting: bool = True,
+                            a_cutoff: float = -1e10):
     """
     Calls `edgeR::calcNormFactors` and returns a numpy array back.
-    :param counts: numpy array of raw counts
-    :param lib_size: (optional) numpy array of library sizes
-
-    :param args:
-    :param kwargs:
-    :return: edgeR scaling factors as numpy array.
+    :param counts: numpy array of raw (unnormalised) counts for each of the samples.
+                   Genes in rows, samples in columns.
+    :param lib_sizes: (optional) numpy array of library sizes.
+                      Should be in the same order as columns of `counts`
+    :param ref_column: (optional) reference column to use
+    :param log_ratio_trim: amount of trim to use on M values (log ratios), default: 0.3
+    :param sum_trim: amount of trim to use on combined absolute values (A values), default: 0.05
+    :param do_weighting: whether to compute asymptotic binomial precision weights, default: True
+    :param a_cutoff: cutoff on A values, default: -1e10 (which is equivalent to no cutoff)
+    :return:
     """
 
     r_counts = to_r_matrix(counts)
 
-    kwargs = kwargs.copy()
-    if lib_size is not None:
-        kwargs['lib.size'] = to_r_vector(lib_size)
+    kwargs = {
+        'logratioTrim': log_ratio_trim,
+        'sumTrim': sum_trim,
+        'Acutoff': a_cutoff,
+        'doWeighting': do_weighting
+    }
+    if lib_sizes is not None:
+        kwargs['lib.size'] = to_r_vector(lib_sizes)
 
-    r_answer = _r_edger.calcNormFactors(r_counts, *args, **kwargs)
+    if ref_column is not None:
+        # R indexing issues:
+        kwargs['refColumn'] = ref_column + 1
+
+    r_answer = _r_edger.calcNormFactors(r_counts, **kwargs)
     return numpy2ri.rpy2py(r_answer)
 
 def r_edger_calcFactorTMM(obs, ref, lib_size_obs=None, lib_size_ref=None, *args, **kwargs):

@@ -26,7 +26,7 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
 
         counts, lib_size = counts_lib_size
 
-        r_answer = r_edger_calcNormFactors(counts, lib_size=lib_size)
+        r_answer = r_edger_calcNormFactors(counts, lib_sizes=lib_size)
         # No point testing bugs in R
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
