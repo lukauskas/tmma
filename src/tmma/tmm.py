@@ -177,6 +177,9 @@ def _calc_factor_tmm(obs, ref,
 
     trimmed = _tmm_trim(logR, absE, log_ratio_trim=log_ratio_trim, sum_trim=sum_trim)
 
+    if trimmed.sum() == 0:
+        return 1.0
+
     logR = logR[trimmed]
     obs = obs[trimmed]
     ref = ref[trimmed]
