@@ -1,6 +1,7 @@
 import unittest
 
-from hypothesis import given
+import numpy as np
+from hypothesis import given, settings
 from numpy.testing import assert_allclose
 from tmma.tmm import _calc_factor_tmm
 
@@ -12,6 +13,7 @@ from tests.edger_compatibility.strategies import uint_counts_array_and_a_lib_siz
 class HypothesisTestCalcFactorTMM(unittest.TestCase):
 
     @given(uint_counts_array_and_a_lib_size(max_cols=2))
+    @settings(max_examples=1000)
     def test_uints_and_random_library_size(self, counts_lib_size):
         """
         Given random unsigned integer counts and a random library size
@@ -37,7 +39,7 @@ class HypothesisTestCalcFactorTMM(unittest.TestCase):
 
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
-    @given(uint_counts_array(max_cols=2))
+    @given(uint_counts_array(max_cols=2).filter(lambda x: (np.sum(x, axis=0) > 0).all()))
     def test_uints_only(self, counts):
         """
         Given random unsigned integer counts,
@@ -54,7 +56,7 @@ class HypothesisTestCalcFactorTMM(unittest.TestCase):
 
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
-    @given(poisson_counts_array(max_cols=2))
+    @given(poisson_counts_array(max_cols=2).filter(lambda x: (np.sum(x, axis=0) > 0).all()))
     def test_poisson_only(self, counts):
         """
         Given random poisson counts,

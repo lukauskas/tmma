@@ -52,6 +52,16 @@ class TestCalcFactorTMM(unittest.TestCase):
         self.assertTrue(np.isclose(expected_answer, actual_answer, rtol=1e-06, atol=0),
                         f'{expected_answer} != {actual_answer}')
 
+    def test_library_size_of_zero_raises_error(self):
+        obs = np.array([1,2,3])
+        ref = np.array([4,5,6])
+
+        # second library size is zero
+        self.assertRaises(ValueError, _calc_factor_tmm, obs, ref, 1, 0)
+
+        # second library size is zero (implicitly)
+        self.assertRaises(ValueError, _calc_factor_tmm, obs, np.array([0, 0, 0]))
+
     def test_with_custom_log_ratio_trim(self):
 
         # Poisson with lambda=7.2
@@ -300,10 +310,7 @@ class TestCalcFactorTMM(unittest.TestCase):
         obs = np.array([0, 0])
         ref = np.array([0, 0])
 
-        expected_result = 1.0
-
-        actual_result = _calc_factor_tmm(obs, ref)
-        assert_array_equal(expected_result, actual_result)
+        self.assertRaises(ValueError, _calc_factor_tmm, obs, ref)
 
     def test_almost_zero_edge_case(self):
 

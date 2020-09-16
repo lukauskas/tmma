@@ -4,6 +4,7 @@ Automated tests using hypothesis package
 
 import unittest
 
+import numpy as np
 from hypothesis import given
 from numpy.testing import assert_allclose
 from tmma.tmm import tmm_normalise
@@ -29,7 +30,7 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
         py_answer = tmm_normalise(counts, lib_sizes=lib_size)
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
-    @given(uint_counts_array())
+    @given(uint_counts_array().filter(lambda x: (np.sum(x, axis=0) > 0).all()))
     def test_uints_only(self, counts):
         """
         Given random unsigned integer counts,
@@ -41,7 +42,7 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
         py_answer = tmm_normalise(counts)
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
-    @given(poisson_counts_array())
+    @given(poisson_counts_array().filter(lambda x: (np.sum(x, axis=0) > 0).all()))
     def test_poisson_only(self, counts):
         """
         Given random poisson counts,

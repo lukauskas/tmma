@@ -156,3 +156,10 @@ class TestMAStats(unittest.TestCase):
 
         actual_v = _asymptotic_variance(obs, ref, obs_lib_size, ref_lib_size)
         assert_allclose(actual_v, expected_v, rtol=1e-06)
+
+    def test_library_size_of_zero_raises_error(self):
+        obs = np.array([1, 2, 3])
+        ref = np.array([4, 5, 6])
+
+        # second library size is zero
+        self.assertRaises(ValueError, _ma_stats, obs, ref, 1, 0)

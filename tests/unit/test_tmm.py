@@ -34,6 +34,16 @@ class TestTMMNormalisation(unittest.TestCase):
         actual_answer = tmm_normalise(counts, lib_sizes=lib_sizes)
         assert_allclose(expected_answer, actual_answer, rtol=1e-6)
 
+    def test_library_size_of_zero_raises_error(self):
+        counts = np.array([[1, 4], [2, 5], [3, 6]])
+
+        lib_sizes = [0, 1]
+        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+
+        # Library size of second column is zero here
+        counts = np.array([[1, 0], [2, 0], [3, 0]])
+        self.assertRaises(ValueError, tmm_normalise, counts)
+
     def test_providing_nan_counts_throws_valueerror(self):
         ## This is what EdgeR does with NaNs
         counts = np.array([[1, 2], [np.nan, 4]])
@@ -131,5 +141,3 @@ class TestTMMNormalisation(unittest.TestCase):
 
         actual_answer = _scale_tmm_factors(factors_unscaled)
         assert_allclose(actual_answer, expected_answer)
-
-
