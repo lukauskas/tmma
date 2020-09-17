@@ -1,5 +1,6 @@
-from setuptools import setup, find_packages
 import pathlib
+
+from setuptools import setup, find_packages
 
 here = pathlib.Path(__file__).parent.resolve()
 
@@ -23,12 +24,14 @@ setup(
 
     python_requires='>=3.8, <4',
 
-    install_requires=['numpy',
-                      'pandas',
-                      'matplotlib',
-                      'scipy'],
+    install_requires=['numpy>=1.19.2',
+                      'pandas>=1.1.2',
+                      'matplotlib>=3.3.1',
+                      'scipy>=1.5.2'],
 
     extras_require={  # Optional
-        'test': ['hypothesis', 'rpy2'],
+        'test': ['hypothesis>=5.35.2',
+                 'rpy2>=3.3.5',
+                 'sinfo>=0.3.1'],
     },
 )
