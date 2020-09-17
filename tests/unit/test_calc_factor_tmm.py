@@ -6,20 +6,23 @@ from numpy.testing import assert_array_equal, assert_allclose
 from tmma.normalisation.tmm import two_sample_tmm, tmm_trim_mask
 from tmma.warnings import InfiniteWeightsWarning
 
+ARRAY_ONE = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
+                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
+                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+
+ARRAY_TWO = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
+                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
+                        3, 0, 6, 4, 4, 7])
 
 class TestCalcFactorTMM(unittest.TestCase):
 
     def test_with_standard_parameters(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
-                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
-                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         # From R
         expected_answer = 0.9821526
@@ -31,14 +34,10 @@ class TestCalcFactorTMM(unittest.TestCase):
     def test_with_custom_lib_sizes(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
-                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
-                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         # Equal libsize
         obs_lib_size = 100
@@ -66,14 +65,10 @@ class TestCalcFactorTMM(unittest.TestCase):
     def test_with_custom_m_values_trim_fraction(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
-                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
-                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         # Custom trim
         m_values_trim_fraction = 0.2
@@ -88,14 +83,10 @@ class TestCalcFactorTMM(unittest.TestCase):
     def test_with_custom_a_values_trim_fraction(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
-                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
-                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         # Custom trim
         a_values_trim_fraction = 0.1
@@ -110,14 +101,10 @@ class TestCalcFactorTMM(unittest.TestCase):
     def test_with_custom_a_cutoff(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
-                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
-                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         # Custom A cut off
         # Pretty much only value that works with this data
@@ -133,14 +120,10 @@ class TestCalcFactorTMM(unittest.TestCase):
     def test_without_weighing(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
-                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
-                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         # Do no weighting
         do_weighting = False
@@ -189,6 +172,71 @@ class TestCalcFactorTMM(unittest.TestCase):
                                     a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
+
+    def test_tmm_trim_mask_raises_error_when_fractions_too_large(self):
+        m_values = [
+            0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
+            0.8744691, 2.0000000, 1.5849625, 2.5849625, 1.8073549, 1.3219281,
+            0.6780719, 0.8073549, 1.1699250, 0.5849625, 0.5849625, 0.2223924,
+            0.2630344, -0.2223924, 1.3219281, 1.1375035, 3.3219281, 1.7004397,
+            0.2223924, 1.5849625, 0.4854268, -0.4150375, 0.4150375, -1.4150375,
+            0.5849625, 1.5849625, 0.3219281, 1.4594316, 1.4150375, 1.8073549,
+            0.3219281, 1.1375035, 1.4594316, 1.0000000, 2.7004397, 0.5849625,
+            1.8073549, 1.5849625, 0.2223924, 1.0000000, 1.4594316, -0.8073549,
+        ]
+        a_values = [
+            -3.558894, -4.558894, -4.690411, -5.143856, -3.947697, -3.836501, -3.621659,
+            -4.643856, -4.266412, -4.351375, -4.740179, -3.982892, -3.982892, -4.240179,
+            -4.058894, -4.351375, -3.766412, -3.947697, -4.190411, -3.947697, -4.982892,
+            -3.753176, -4.982892, -3.793636, -3.947697, -4.266412, -4.079215, -3.851375,
+            -4.851375, -4.351375, -4.351375, -4.851375, -4.482892, -3.914140, -4.351375,
+            -4.740179, -4.482892, -3.753176, -3.914140, -3.821928, -4.293636, -4.351375,
+            -4.740179, -4.266412, -3.947697, -4.143856, -3.914140, -4.240179
+        ]
+
+        self.assertRaises(ValueError, tmm_trim_mask, m_values, a_values, a_values_trim_fraction=0.51)
+        self.assertRaises(ValueError, tmm_trim_mask, m_values, a_values, m_values_trim_fraction=0.51)
+
+    def testtmm_trim_mask_with_custom_a_cutoff(self):
+        m_values = [
+            0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
+            0.8744691, 2.0000000, 1.5849625, 2.5849625, 1.8073549, 1.3219281,
+            0.6780719, 0.8073549, 1.1699250, 0.5849625, 0.5849625, 0.2223924,
+            0.2630344, -0.2223924, 1.3219281, 1.1375035, 3.3219281, 1.7004397,
+            0.2223924, 1.5849625, 0.4854268, -0.4150375, 0.4150375, -1.4150375,
+            0.5849625, 1.5849625, 0.3219281, 1.4594316, 1.4150375, 1.8073549,
+            0.3219281, 1.1375035, 1.4594316, 1.0000000, 2.7004397, 0.5849625,
+            1.8073549, 1.5849625, 0.2223924, 1.0000000, 1.4594316, -0.8073549,
+        ]
+        a_values = [
+            -3.558894, -4.558894, -4.690411, -5.143856, -3.947697, -3.836501, -3.621659,
+            -4.643856, -4.266412, -4.351375, -4.740179, -3.982892, -3.982892, -4.240179,
+            -4.058894, -4.351375, -3.766412, -3.947697, -4.190411, -3.947697, -4.982892,
+            -3.753176, -4.982892, -3.793636, -3.947697, -4.266412, -4.079215, -3.851375,
+            -4.851375, -4.351375, -4.351375, -4.851375, -4.482892, -3.914140, -4.351375,
+            -4.740179, -4.482892, -3.753176, -3.914140, -3.821928, -4.293636, -4.351375,
+            -4.740179, -4.266412, -3.947697, -4.143856, -3.914140, -4.240179
+        ]
+
+        m_values = np.asarray(m_values)
+        a_values = np.asarray(a_values)
+
+        m_values_trim_fraction = .3
+        a_values_trim_fraction = 0.05
+
+        a_cutoff = -4.558894
+        greater_than_a_cutoff = np.array(a_values) > a_cutoff
+
+        answer_for_remaining_items = tmm_trim_mask(m_values[greater_than_a_cutoff],
+                                                   a_values[greater_than_a_cutoff])
+
+        answer_for_all  = tmm_trim_mask(m_values, a_values,
+                                        m_values_trim_fraction=m_values_trim_fraction,
+                                        a_values_trim_fraction=a_values_trim_fraction,
+                                        a_cutoff=a_cutoff)
+
+        self.assertTrue(np.all(answer_for_all[~greater_than_a_cutoff] == False))
+        assert_array_equal(answer_for_remaining_items, answer_for_all[greater_than_a_cutoff])
 
     def test_tmm_mask_respects_indices(self):
         m_values = [
@@ -272,8 +320,8 @@ class TestCalcFactorTMM(unittest.TestCase):
         ]
 
         actual_keep = tmm_trim_mask(m_values, a_values,
-                                m_values_trim_fraction=m_values_trim_fraction,
-                                a_values_trim_fraction=a_values_trim_fraction)
+                                    m_values_trim_fraction=m_values_trim_fraction,
+                                    a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
 

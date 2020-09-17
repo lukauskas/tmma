@@ -1,7 +1,7 @@
 import hypothesis.extra.numpy as np_strategies
 import numpy as np
 from hypothesis import strategies
-from hypothesis.strategies import lists, integers
+from hypothesis.strategies import lists, integers, floats
 
 
 @strategies.composite
@@ -76,3 +76,16 @@ def poisson_counts_array(draw, max_rows=5_000, max_cols=10,
     poisson_counts = np.random.poisson(lam=lambdas, size=(n_rows, n_cols))
 
     return poisson_counts
+
+def reasonable_floats(rounding_precision=3, *args, **kwargs):
+    """
+    Returns floats strategy with some rounding to avoid crazy amount
+    of digits.
+
+    :param rounding_precision:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    reasonable_floats = floats(*args, **kwargs).map(lambda x: float(np.round(x, rounding_precision)))
+    return reasonable_floats

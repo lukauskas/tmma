@@ -3,11 +3,12 @@ import unittest
 import numpy as np
 import pandas as pd
 from hypothesis import given, assume
-from hypothesis.strategies import floats, booleans, integers
+from hypothesis.strategies import booleans, integers
 from numpy.testing import assert_allclose
 from tmma.normalisation.tmm import tmm_normalisation_factors
 
 from tests.edger_compatibility.r_helpers import r_edger_calcNormFactors
+from tests.edger_compatibility.strategies import reasonable_floats
 
 DATASET = '../data/from-edger-user-guide/arabidopsis/arab.csv'
 
@@ -23,7 +24,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
     Tests against Arabidopsis dataset from edgeR user guide section 4.2.
     See `data/from-edger-user-guide/arabidopsis/`
     """
-    @given(floats(min_value=0.0, max_value=1.0), booleans())
+    @given(reasonable_floats(min_value=0.0, max_value=0.499), booleans())
     def test_different_m_values_trim_fraction(self, m_values_trim_fraction, do_weighting):
         df = load_arabidopsis()
 
@@ -41,7 +42,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
                                               weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
-    @given(floats(min_value=0.0, max_value=1.0), booleans())
+    @given(reasonable_floats(min_value=0.0, max_value=0.499), booleans())
     def test_different_a_values_trim_fraction(self, a_values_trim_fraction, do_weighting):
         df = load_arabidopsis()
 
@@ -57,18 +58,20 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
                                               weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
-    @given(floats(min_value=-2, max_value=2), booleans())
+    @given(reasonable_floats(min_value=-2, max_value=2), booleans())
     def test_different_a_cutoff(self, a_cutoff, do_weighting):
         df = load_arabidopsis()
 
-        r_answer = r_edger_calcNormFactors(df, a_values_trim_fraction=a_cutoff,
+        r_answer = r_edger_calcNormFactors(df,
+                                           a_cutoff=a_cutoff,
                                            weighted=do_weighting)
 
         # No point testing bugs in R
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalisation_factors(df, a_values_trim_fraction=a_cutoff, weighted=do_weighting)
+        py_answer = tmm_normalisation_factors(df, a_cutoff=a_cutoff,
+                                              weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
 
@@ -86,9 +89,9 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
     @given(
-        floats(min_value=0, max_value=1),
-        floats(min_value=0, max_value=1),
-        floats(min_value=-2, max_value=2),
+        reasonable_floats(min_value=0, max_value=0.449),
+        reasonable_floats(min_value=0, max_value=0.449),
+        reasonable_floats(min_value=-2, max_value=2),
         integers(min_value=0, max_value=5),
         booleans()
     )
