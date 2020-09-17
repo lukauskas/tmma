@@ -107,6 +107,14 @@ class TestTMMNormalisation(unittest.TestCase):
         # Too large
         self.assertRaises(ValueError, tmm_normalisation_factors, counts, ref_column=3)
 
+        # Letters not allowed for non-pandas
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, ref_column='a')
+
+        counts_df = pd.DataFrame(counts, columns=['a', 'b', 'c'])
+
+        # Letter not found
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, ref_column='o')
+
     def test_degenerate_cases_return_ones(self):
 
         # For degenerate cases edgeR returns all ones
@@ -152,3 +160,23 @@ class TestTMMNormalisation(unittest.TestCase):
         answer = tmm_normalisation_factors(counts)
         self.assertIsInstance(answer, pd.Series)
         self.assertTrue(counts.columns.equals(answer.index))
+
+    def test_reference_column_can_be_provided_as_string_if_dataframe_given(self):
+        counts = np.array([[ 5,  6,  0,  3,  2],
+                           [ 3,  8,  4,  4,  8],
+                           [ 6,  3,  8,  7,  1],
+                           [10,  4,  3,  4,  4],
+                           [ 5,  5,  5,  2,  2],
+                           [ 4,  2,  5,  1,  5],
+                           [ 3,  6,  4,  3,  5],
+                           [ 2,  7,  2,  7,  6],
+                           [ 6,  5,  5,  6,  8],
+                           [ 4,  7,  6,  6,  8]])
+
+        counts = pd.DataFrame(counts, columns=['a', 'b', 'c', 'd', 'e'])
+        counts.columns.name = 'random_letter'
+
+        answer_int = tmm_normalisation_factors(counts, ref_column=3)
+        answer_letter = tmm_normalisation_factors(counts, ref_column='d')
+        assert_array_equal(answer_int, answer_letter)
+

@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -179,7 +179,7 @@ def scale_tmm_factors(unscaled_factors):
 
 def _tmm_normalisation_factors_unscaled(counts,
                                         lib_sizes=None,
-                                        ref_column: Optional[int] = None,
+                                        ref_column: Optional[Union[int, str]] = None,
                                         m_values_trim_fraction: float = 0.3,
                                         a_values_trim_fraction: float = 0.05,
                                         weighted: bool = True,
@@ -229,7 +229,14 @@ def _tmm_normalisation_factors_unscaled(counts,
         raise ValueError(f"Wrong shape of libsize, was expecting an array of {n_columns} items")
 
     if ref_column is not None:
-        if not isinstance(ref_column, int) or ref_column < 0 or ref_column >= n_columns:
+        if isinstance(ref_column, str):
+            if column_names is None:
+                raise ValueError('String column names require `counts` to be provided as `pd.DataFrame`')
+            elif ref_column not in column_names:
+                raise ValueError("Provided ref_column is not in `counts.columns`")
+            else:
+                ref_column = list(column_names).index(ref_column)
+        elif not isinstance(ref_column, int) or ref_column < 0 or ref_column >= n_columns:
             raise ValueError(f"Wrong ref_column provided {ref_column!r}")
 
     # Remove all-zero rows
@@ -269,7 +276,7 @@ def _tmm_normalisation_factors_unscaled(counts,
 
 def tmm_normalisation_factors(counts,
                               lib_sizes=None,
-                              ref_column: Optional[int] = None,
+                              ref_column: Optional[Union[int, str]] = None,
                               m_values_trim_fraction: float = 0.3,
                               a_values_trim_fraction: float = 0.05,
                               weighted: bool = True,
