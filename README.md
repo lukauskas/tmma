@@ -2,19 +2,41 @@
 
 Based on the implementation in [`EdgeR` Bioconductor package](https://bioconductor.org/packages/release/bioc/html/edgeR.html).
 
-## Installation (development)
+## Installation
 
-Clone the repository:
+`tmma` can be installed through `pip`:
+
+```
+pip install git+https://github.com/lukauskas/tmma.git
+```
+
+### Development installation
+
+For development, please clone the repository:
 
 ```
 git clone https://github.com/lukauskas/tmma.git
 ```
 
-Install package with (`-e`) flag set and optional `test` dependencies.
+and then install package with (`-e`) flag set and optional `test` dependencies.
 
 ```
 pip install -e .[test]
 ```
+
+## Running tests
+
+If you have installed the development version of the package, you can run the tests with the following
+command:
+
+```
+python -m unittest discover -s tests/
+```
+
+## Usage
+
+See example based on the Arabidopsis dataset from `edgeR` user guide, available
+in the [examples directory](examples/Arabidopsis%20dataset.ipynb)
 
 ## References
 

@@ -33,6 +33,7 @@ def tmm_trim_mask(m_values,
                   a_values,
                   m_values_trim_fraction: float = 0.3,
                   a_values_trim_fraction: float = 0.05,
+                  a_cutoff: float = -1e10
                   ):
     """
 
@@ -45,37 +46,67 @@ def tmm_trim_mask(m_values,
     :param a_values: A values (abs intensities)
     :param m_values_trim_fraction: log ratio trim coefficient
     :param a_values_trim_fraction: sum trim coefficient
+    :param a_cutoff: the cutoff for a_values
     :return: A boolean array wose elements are set to:
             True, if value should be kept for mean calculation
             False, if value should not be considered for mean calculation.
     """
     index = validate_series_indices(m_values, a_values)
 
-    # This is the actual TMM
-    n = len(m_values)
-    lowest_m_rank = np.floor(n * m_values_trim_fraction) + 1
-    highest_m_rank = n + 1 - lowest_m_rank
+    m_values = np.asarray(m_values, dtype=TMMA_ARRAY_DTYPE)
+    a_values = np.asarray(a_values, dtype=TMMA_ARRAY_DTYPE)
 
-    lowest_s_rank = np.floor(n * a_values_trim_fraction) + 1
-    highest_s_rank = n + 1 - lowest_s_rank
+    if m_values_trim_fraction >= 0.5:
+        raise ValueError("TMM trims from both sides, fraction >=0.5 will trim all datapoints")
 
-    # This is needed to give the same answers as R
-    # In practice it doesn't change much
-    # Except in a few edge cases
-    # see `test_with_custom_lib_sizes`
-    m_values = np.round(m_values, 6)
-    a_values = np.round(a_values, 6)
+    if a_values_trim_fraction >= 0.5:
+        raise ValueError("TMM trims from both sides, fraction >=0.5 will trim all datapoints")
 
-    m_ranks = rankdata(m_values, method='average')
-    a_ranks = rankdata(a_values, method='average')
+    # First mask
+    # Remove all of the infinities that appear
+    inf_nan_mask = np.isinf(m_values) | np.isnan(m_values)
+    inf_nan_mask |= np.isinf(a_values) | np.isnan(a_values)
 
-    # Trimming
+    # Also remove regions below "A" cutoff
+    inf_nan_mask |= a_values <= a_cutoff
 
-    keep = (m_ranks >= lowest_m_rank) & (m_ranks <= highest_m_rank)
-    keep &= (a_ranks >= lowest_s_rank) & (a_ranks <= highest_s_rank)
+    # If everything is NaN then stop here.
+    if (~inf_nan_mask).sum() == 0:
+        keep = ~inf_nan_mask
+    else:
+
+        m_values_subset = m_values[~inf_nan_mask]
+        a_values_subset = a_values[~inf_nan_mask]
+
+        # This is the actual TMM
+        n = len(m_values_subset)
+        lowest_m_rank = np.floor(n * m_values_trim_fraction) + 1
+        highest_m_rank = n + 1 - lowest_m_rank
+
+        lowest_s_rank = np.floor(n * a_values_trim_fraction) + 1
+        highest_s_rank = n + 1 - lowest_s_rank
+
+        # This is needed to give the same answers as R
+        # In practice it doesn't change much
+        # Except in a few edge cases
+        # see `test_with_custom_lib_sizes`
+        m_values_subset = np.round(m_values_subset, 6)
+        a_values_subset = np.round(a_values_subset, 6)
+
+        m_values_subset_ranks = rankdata(m_values_subset, method='average')
+        a_values_subset_ranks = rankdata(a_values_subset, method='average')
+
+        # Trimming
+        keep_subset = (m_values_subset_ranks >= lowest_m_rank) & (m_values_subset_ranks <= highest_m_rank)
+        keep_subset &= (a_values_subset_ranks >= lowest_s_rank) & (a_values_subset_ranks <= highest_s_rank)
+
+        # Merge the two masks together
+        keep = (~inf_nan_mask).copy()
+        keep[~inf_nan_mask] = keep_subset
 
     if index is not None:
         keep = pd.Series(keep, index=index, name='considered_for_tmm')
+
     return keep
 
 def two_sample_tmm(obs,
@@ -118,29 +149,18 @@ def two_sample_tmm(obs,
 
     m_values, a_values = ma_statistics(obs, ref, lib_size_obs, lib_size_ref)
 
-    # Remove all of the infinities that appear
-    mask = np.isinf(m_values) | np.isnan(m_values)
-    mask |= np.isinf(a_values) | np.isnan(a_values)
+    abs_m_values = np.abs(m_values)
+    abs_m_values = abs_m_values[~np.isinf(abs_m_values)]
+    abs_m_values = abs_m_values[~np.isnan(abs_m_values)]
 
-    # Also remove regions below "A" cutoff
-    mask |= a_values <= a_cutoff
-
-    # Nothing wsa left :(
-    if (~mask).sum() == 0:
-        return 1.0
-
-    m_values = m_values[~mask]
-    a_values = a_values[~mask]
-    obs = obs[~mask]
-    ref = ref[~mask]
-
-    # That's a very odd clause in edgeR source, but I guess it is there fore a reason.
-    if np.max(np.abs(m_values)) < 1e-6:
+    # That's a very odd clause in edgeR source, but I guess it is there for a reason.
+    if len(abs_m_values) == 0 or np.max(abs_m_values) < 1e-6:
         return 1.0
 
     trimmed = tmm_trim_mask(m_values, a_values,
                             m_values_trim_fraction=m_values_trim_fraction,
-                            a_values_trim_fraction=a_values_trim_fraction)
+                            a_values_trim_fraction=a_values_trim_fraction,
+                            a_cutoff=a_cutoff)
 
     if trimmed.sum() == 0:
         return 1.0

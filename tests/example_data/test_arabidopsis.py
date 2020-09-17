@@ -5,7 +5,10 @@ import pandas as pd
 from numpy.testing import assert_allclose
 from tmma.normalisation.tmm import tmm_normalisation_factors
 
-DATASET = '../data/from-edger-user-guide/arabidopsis/arab.csv'
+import os
+_here = os.path.dirname(__file__)
+DATASET = os.path.join(_here, '../..', 'data/from-edger-user-guide/arabidopsis/arab.csv')
+
 
 def load_arabidopsis():
     return pd.read_csv(DATASET, index_col=0)

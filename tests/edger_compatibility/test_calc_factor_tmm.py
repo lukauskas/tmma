@@ -5,9 +5,9 @@ from hypothesis import given, settings, assume
 from numpy.testing import assert_allclose
 from tmma.normalisation.tmm import two_sample_tmm
 
-from tests.edger_compatibility.r_helpers import r_edger_calcFactorTMM
-from tests.edger_compatibility.strategies import uint_counts_array_and_a_lib_size, \
-    uint_counts_array, poisson_counts_array
+from .r_helpers import r_edger_calcFactorTMM
+from .strategies import uint_counts_array_and_a_lib_size, \
+                        uint_counts_array, poisson_counts_array
 
 
 class HypothesisTestCalcFactorTMM(unittest.TestCase):
