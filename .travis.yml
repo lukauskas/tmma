@@ -1,4 +1,12 @@
 language: python
+os: linux            
+dist: focal
+addons:
+  apt:
+    sources: 
+      - sourceline: 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
+    packages:
+      - R
 python:
   - "3.6"
   - "3.7"
