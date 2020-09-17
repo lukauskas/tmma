@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal, assert_allclose
-from tmma.tmm import tmm_normalise, _scale_tmm_factors
+from tmma.normalisation.tmm import tmm_normalisation_factors, scale_tmm_factors
 
 
 class TestTMMNormalisation(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestTMMNormalisation(unittest.TestCase):
         counts = np.array([[1, 4], [2, 5], [3,6]])
         expected_answer = [1.0276039, 0.9731376]
 
-        actual_answer = tmm_normalise(counts)
+        actual_answer = tmm_normalisation_factors(counts)
         assert_allclose(expected_answer, actual_answer, rtol=1e-6)
 
     def test_toy_example_with_libsizes_works(self):
@@ -22,7 +22,7 @@ class TestTMMNormalisation(unittest.TestCase):
 
         expected_answer = [0.7276626, 1.3742633]
 
-        actual_answer = tmm_normalise(counts, lib_sizes=lib_sizes)
+        actual_answer = tmm_normalisation_factors(counts, lib_sizes=lib_sizes)
         assert_allclose(expected_answer, actual_answer, rtol=1e-6)
 
     def test_library_sizes_can_be_provided_as_lists(self):
@@ -31,81 +31,81 @@ class TestTMMNormalisation(unittest.TestCase):
 
         expected_answer = [0.7276626, 1.3742633]
 
-        actual_answer = tmm_normalise(counts, lib_sizes=lib_sizes)
+        actual_answer = tmm_normalisation_factors(counts, lib_sizes=lib_sizes)
         assert_allclose(expected_answer, actual_answer, rtol=1e-6)
 
     def test_library_size_of_zero_raises_error(self):
         counts = np.array([[1, 4], [2, 5], [3, 6]])
 
         lib_sizes = [0, 1]
-        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, lib_sizes=lib_sizes)
 
         # Library size of second column is zero here
         counts = np.array([[1, 0], [2, 0], [3, 0]])
-        self.assertRaises(ValueError, tmm_normalise, counts)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts)
 
     def test_providing_nan_counts_throws_valueerror(self):
         ## This is what EdgeR does with NaNs
         counts = np.array([[1, 2], [np.nan, 4]])
-        self.assertRaises(ValueError, tmm_normalise, counts)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts)
 
         counts = np.array([[1, 2], [None, 4]])
-        self.assertRaises(ValueError, tmm_normalise, counts)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts)
 
         counts = pd.DataFrame([[1, 2], [None, 4]])
-        self.assertRaises(ValueError, tmm_normalise, counts)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts)
 
     def test_providing_inf_counts_throws_valueerror(self):
         ## This is what EdgeR does with NaNs
         counts = np.array([[1, 2], [np.inf, 4]])
-        self.assertRaises(ValueError, tmm_normalise, counts)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts)
 
         counts = np.array([[1, 2], [-np.inf, 4]])
-        self.assertRaises(ValueError, tmm_normalise, counts)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts)
 
     def test_providing_nan_libsize_throws_valueerror(self):
         ## This is what EdgeR does with NaNs
         counts = np.array([[1, 2], [3, 4]])
         lib_sizes = np.array([np.nan, 1])
-        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, lib_sizes=lib_sizes)
 
     def test_providing_inf_libsize_throws_valueerror(self):
         ## This is what EdgeR does with NaNs
         counts = np.array([[1, 2], [3, 4]])
         lib_sizes = np.array([np.inf, 1])
-        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, lib_sizes=lib_sizes)
 
         lib_sizes = np.array([-np.inf, 1])
-        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, lib_sizes=lib_sizes)
 
     def test_providing_wrong_libsize_throws_valueerror(self):
 
         counts = np.array([[1, 2], [3, 4]])
         # Too small
         lib_sizes = np.array([0])
-        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, lib_sizes=lib_sizes)
 
         # Too big
         lib_sizes = np.array([0, 1, 2])
-        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, lib_sizes=lib_sizes)
 
         # Wrong dimensionality
         lib_sizes = np.array([[0, 1], [2, 3]])
-        self.assertRaises(ValueError, tmm_normalise, counts, lib_sizes=lib_sizes)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, lib_sizes=lib_sizes)
 
     def test_providing_wrong_refcol_throws_error(self):
 
         counts = np.array([[1, 2, 3], [3, 4, 5]])
 
         # Invalid
-        self.assertRaises(ValueError, tmm_normalise, counts, ref_column=-1)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, ref_column=-1)
 
         # Also invalid
         # Invalid
-        self.assertRaises(ValueError, tmm_normalise, counts, ref_column=0.1)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, ref_column=0.1)
 
         # Too large
-        self.assertRaises(ValueError, tmm_normalise, counts, ref_column=3)
+        self.assertRaises(ValueError, tmm_normalisation_factors, counts, ref_column=3)
 
     def test_degenerate_cases_return_ones(self):
 
@@ -114,18 +114,18 @@ class TestTMMNormalisation(unittest.TestCase):
 
         # Degenerate - all zeroes
         counts = np.array([[0, 0, 0, 0]])
-        actual_answer = tmm_normalise(counts)
+        actual_answer = tmm_normalisation_factors(counts)
         assert_array_equal(actual_answer, expected_answer)
 
         # Degenerate - only one column
         counts = np.array([[1], [2], [3]])
-        actual_answer = tmm_normalise(counts)
+        actual_answer = tmm_normalisation_factors(counts)
         assert_array_equal(actual_answer, [1.0])
 
         # Degenerate - this actually collapses to zero samples
         # as the zero-row is removed
         counts = np.array([[0, 0, 0, 0]])
-        actual_answer = tmm_normalise(counts)
+        actual_answer = tmm_normalisation_factors(counts)
         assert_array_equal(actual_answer, expected_answer)
 
 
@@ -139,5 +139,5 @@ class TestTMMNormalisation(unittest.TestCase):
             0.9787380, 0.9931984, 0.9287641, 1.0577844, 1.0948637, 0.9563897
         ])
 
-        actual_answer = _scale_tmm_factors(factors_unscaled)
+        actual_answer = scale_tmm_factors(factors_unscaled)
         assert_allclose(actual_answer, expected_answer)

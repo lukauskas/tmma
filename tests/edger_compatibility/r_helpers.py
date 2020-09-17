@@ -42,9 +42,9 @@ def to_r_vector(vector):
 def r_edger_calcNormFactors(counts,
                             lib_sizes=None,
                             ref_column: Optional[int] = None,
-                            log_ratio_trim: float = 0.3,
-                            sum_trim: float = 0.05,
-                            do_weighting: bool = True,
+                            m_values_trim_fraction: float = 0.3,
+                            a_values_trim_fraction: float = 0.05,
+                            weighted: bool = True,
                             a_cutoff: float = -1e10):
     """
     Calls `edgeR::calcNormFactors` and returns a numpy array back.
@@ -53,20 +53,25 @@ def r_edger_calcNormFactors(counts,
     :param lib_sizes: (optional) numpy array of library sizes.
                       Should be in the same order as columns of `counts`
     :param ref_column: (optional) reference column to use
-    :param log_ratio_trim: amount of trim to use on M values (log ratios), default: 0.3
-    :param sum_trim: amount of trim to use on combined absolute values (A values), default: 0.05
-    :param do_weighting: whether to compute asymptotic binomial precision weights, default: True
-    :param a_cutoff: cutoff on A values, default: -1e10 (which is equivalent to no cutoff)
+    :param m_values_trim_fraction: amount of trim to use on M values (log ratios),
+           default: 0.3, `logratioTrim` in R
+    :param a_values_trim_fraction: amount of trim to use on combined absolute values (A values),
+           default: 0.05, `sumTrim` in R
+    :param weighted: whether to compute asymptotic binomial precision weights,
+            default: True, `doWeighting` in R
+    :param a_cutoff: cutoff on A values,
+           default: -1e10 (which is equivalent to no cutoff),
+           `Acutoff` in R
     :return:
     """
 
     r_counts = to_r_matrix(counts)
 
     kwargs = {
-        'logratioTrim': log_ratio_trim,
-        'sumTrim': sum_trim,
+        'logratioTrim': m_values_trim_fraction,
+        'sumTrim': a_values_trim_fraction,
         'Acutoff': a_cutoff,
-        'doWeighting': do_weighting
+        'doWeighting': weighted
     }
     if lib_sizes is not None:
         kwargs['lib.size'] = to_r_vector(lib_sizes)
@@ -78,7 +83,9 @@ def r_edger_calcNormFactors(counts,
     r_answer = _r_edger.calcNormFactors(r_counts, **kwargs)
     return numpy2ri.rpy2py(r_answer)
 
-def r_edger_calcFactorTMM(obs, ref, lib_size_obs=None, lib_size_ref=None, *args, **kwargs):
+def r_edger_calcFactorTMM(obs, ref,
+                          lib_size_obs=None, lib_size_ref=None,
+                          *args, **kwargs):
 
     r_obs = to_r_vector(obs)
     r_ref = to_r_vector(ref)

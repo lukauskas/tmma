@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_allclose
-from tmma.tmm import tmm_normalise, _tmm_normalise_unscaled
+from tmma.normalisation.tmm import tmm_normalisation_factors
 
 DATASET = '../data/from-edger-user-guide/arabidopsis/arab.csv'
 
@@ -33,7 +33,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
             0.9548559
         ])
 
-        actual_answer = tmm_normalise(df)
+        actual_answer = tmm_normalisation_factors(df)
         assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 
     def test_arabidopsis_specific_ref_column(self):
@@ -49,14 +49,14 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
             0.9787380, 0.9931984, 0.9287641, 1.0577844, 1.0948637, 0.9563897
         ])
 
-        actual_answer = tmm_normalise(df, ref_column=ref_column)
+        actual_answer = tmm_normalisation_factors(df, ref_column=ref_column)
         assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 
-    def test_arabidopsis_specific_sum_trim(self):
+    def test_arabidopsis_specific_a_values_trim_fraction(self):
         df = load_arabidopsis()
 
         # Failure case discovered by hypothesis
-        sum_trim = 0.4997824194952133
+        a_values_trim_fraction = 0.4997824194952133
 
         expected_answer_weighted = np.array([
             0.9288730, 1.1990624, 0.8014742, 1.0889198, 1.1075418, 0.9288730
@@ -66,10 +66,14 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
             0.9297549, 1.1952989, 0.8021529, 1.0885250, 1.1083857, 0.9297549
         ])
 
-        actual_answer_weighted = tmm_normalise(df, sum_trim=sum_trim, do_weighting=True)
+        actual_answer_weighted = tmm_normalisation_factors(df,
+                                                           a_values_trim_fraction=a_values_trim_fraction,
+                                                           weighted=True)
         assert_allclose(actual_answer_weighted, expected_answer_weighted, atol=ABS_TOL, rtol=REL_TOL)
 
-        actual_answer_unweighted = tmm_normalise(df, sum_trim=sum_trim, do_weighting=False)
+        actual_answer_unweighted = tmm_normalisation_factors(df,
+                                                             a_values_trim_fraction=a_values_trim_fraction,
+                                                             weighted=False)
         assert_allclose(actual_answer_unweighted, expected_answer_unweighted, atol=ABS_TOL,
                         rtol=REL_TOL)
 
@@ -80,7 +84,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
             1.0233674, 1.0712034, 0.9574362, 1.1084911, 1.1340377, 1.0000000,
         ])
 
-        actual_answer = _tmm_normalise_unscaled(df)
+        actual_answer = tmm_normalisation_factors(df, return_scaled=False)
 
         assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 
@@ -91,7 +95,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
             1.0000000, 1.0147745, 0.9489405, 1.0807636, 1.1186484, 0.9771662
         ])
 
-        actual_answer = _tmm_normalise_unscaled(df, ref_column=0)
+        actual_answer = tmm_normalisation_factors(df, ref_column=0, return_scaled=False)
 
         assert_allclose(actual_answer, expected_answer, atol=ABS_TOL, rtol=REL_TOL)
 

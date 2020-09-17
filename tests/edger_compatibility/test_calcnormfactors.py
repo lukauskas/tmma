@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 from hypothesis import given, assume, note, settings
 from numpy.testing import assert_allclose
-from tmma.tmm import tmm_normalise
+from tmma.normalisation.tmm import tmm_normalisation_factors
 
 from .r_helpers import r_edger_calcNormFactors
 from .strategies import uint_counts_array, poisson_counts_array, uint_counts_array_and_a_lib_size
@@ -31,7 +31,7 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalise(counts, lib_sizes=lib_size)
+        py_answer = tmm_normalisation_factors(counts, lib_sizes=lib_size)
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
     @given(uint_counts_array().filter(lambda x: (np.sum(x, axis=0) > 0).all()))
@@ -48,7 +48,7 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalise(counts)
+        py_answer = tmm_normalisation_factors(counts)
         assert_allclose(r_answer, py_answer, rtol=1e-6)
 
     @given(poisson_counts_array().filter(lambda x: (np.sum(x, axis=0) > 0).all()))
@@ -67,7 +67,7 @@ class HypothesisTestCalcNormFactors(unittest.TestCase):
         assume(not np.any(np.isnan(r_answer)))
 
         note('Shape = {!r}'.format(counts.shape))
-        py_answer = tmm_normalise(counts)
+        py_answer = tmm_normalisation_factors(counts)
 
         # Allow to differ by 1/100
         assert_allclose(r_answer, py_answer, rtol=0, atol=1e-2)

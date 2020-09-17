@@ -1,3 +1,4 @@
 *.egg-info
 /.Rhistory
-/tests/.hypothesis/
+.hypothesis/
+.ipynb_checkpoints/

@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
-from tmma.tmm import _ma_stats, _asymptotic_variance
+from tmma.ma.stats import ma_statistics, asymptotic_variance
 from tmma.warnings import AsymptoticVarianceWarning
 
 
@@ -47,9 +47,9 @@ class TestMAStats(unittest.TestCase):
              -5.768514
         ]
 
-        actual_m, actual_a = _ma_stats(obs, ref,
-                                       lib_size_obs=obs_lib_size,
-                                       lib_size_ref=ref_lib_size)
+        actual_m, actual_a = ma_statistics(obs, ref,
+                                           lib_size_obs=obs_lib_size,
+                                           lib_size_ref=ref_lib_size)
 
         assert_allclose(actual_m, expected_m, rtol=1e-06)
         assert_allclose(actual_a, expected_a, rtol=1e-06)
@@ -93,9 +93,9 @@ class TestMAStats(unittest.TestCase):
             -4.240179
         ]
 
-        actual_m, actual_a = _ma_stats(obs, ref,
-                                       lib_size_obs=obs_lib_size,
-                                       lib_size_ref=ref_lib_size)
+        actual_m, actual_a = ma_statistics(obs, ref,
+                                           lib_size_obs=obs_lib_size,
+                                           lib_size_ref=ref_lib_size)
 
         assert_allclose(actual_m, expected_m, rtol=1e-06)
         assert_allclose(actual_a, expected_a, rtol=1e-06)
@@ -126,7 +126,7 @@ class TestMAStats(unittest.TestCase):
             0.3856220
         ]
 
-        actual_v = _asymptotic_variance(obs, ref, obs_lib_size, ref_lib_size)
+        actual_v = asymptotic_variance(obs, ref, obs_lib_size, ref_lib_size)
         assert_allclose(actual_v, expected_v, rtol=1e-06)
 
     def test_asymptotic_variance_custom_libsize(self):
@@ -155,7 +155,7 @@ class TestMAStats(unittest.TestCase):
             0.3728571
         ]
 
-        actual_v = _asymptotic_variance(obs, ref, obs_lib_size, ref_lib_size)
+        actual_v = asymptotic_variance(obs, ref, obs_lib_size, ref_lib_size)
         assert_allclose(actual_v, expected_v, rtol=1e-06)
 
     def test_library_size_of_zero_raises_error(self):
@@ -163,7 +163,7 @@ class TestMAStats(unittest.TestCase):
         ref = np.array([4, 5, 6])
 
         # second library size is zero
-        self.assertRaises(ValueError, _ma_stats, obs, ref, 1, 0)
+        self.assertRaises(ValueError, ma_statistics, obs, ref, 1, 0)
 
     def test_asymptotic_variance_is_not_influenced_by_dtype(self):
 
@@ -179,9 +179,9 @@ class TestMAStats(unittest.TestCase):
         ls_ref = 1
 
         # This will work
-        result_float = _asymptotic_variance(obs_float, ref_float, ls_obs, ls_ref)
+        result_float = asymptotic_variance(obs_float, ref_float, ls_obs, ls_ref)
         # At the time of writing this somehow fails
-        result_uint = _asymptotic_variance(obs_uint32, ref_uint32, ls_obs, ls_ref)
+        result_uint = asymptotic_variance(obs_uint32, ref_uint32, ls_obs, ls_ref)
         assert_array_equal(result_float, result_uint)
 
     def test_asymptotic_variance_warns_when_library_size_smaller_than_observations(self):
@@ -193,4 +193,4 @@ class TestMAStats(unittest.TestCase):
         ls_ref = 10
 
         with self.assertWarns(AsymptoticVarianceWarning) as cm:
-            _asymptotic_variance(obs_float, ref_float, ls_obs, ls_ref)
+            asymptotic_variance(obs_float, ref_float, ls_obs, ls_ref)

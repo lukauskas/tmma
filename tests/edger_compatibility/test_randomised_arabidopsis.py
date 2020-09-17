@@ -5,7 +5,7 @@ import pandas as pd
 from hypothesis import given, assume
 from hypothesis.strategies import floats, booleans, integers
 from numpy.testing import assert_allclose
-from tmma.tmm import tmm_normalise
+from tmma.normalisation.tmm import tmm_normalisation_factors
 
 from tests.edger_compatibility.r_helpers import r_edger_calcNormFactors
 
@@ -24,46 +24,51 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
     See `data/from-edger-user-guide/arabidopsis/`
     """
     @given(floats(min_value=0.0, max_value=1.0), booleans())
-    def test_different_log_ratio_trim(self, log_ratio_trim, do_weighting):
+    def test_different_m_values_trim_fraction(self, m_values_trim_fraction, do_weighting):
         df = load_arabidopsis()
 
         r_answer = r_edger_calcNormFactors(df,
-                                           log_ratio_trim=log_ratio_trim,
-                                           do_weighting=do_weighting)
+                                           m_values_trim_fraction=m_values_trim_fraction,
+                                           weighted=do_weighting
+                                           )
 
         # No point testing bugs in R
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalise(df, log_ratio_trim=log_ratio_trim, do_weighting=do_weighting)
+        py_answer = tmm_normalisation_factors(df,
+                                              m_values_trim_fraction=m_values_trim_fraction,
+                                              weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
     @given(floats(min_value=0.0, max_value=1.0), booleans())
-    def test_different_sum_trim(self, sum_trim, do_weighting):
+    def test_different_a_values_trim_fraction(self, a_values_trim_fraction, do_weighting):
         df = load_arabidopsis()
 
-        r_answer = r_edger_calcNormFactors(df, sum_trim=sum_trim,
-                                           do_weighting=do_weighting)
+        r_answer = r_edger_calcNormFactors(df,
+                                           a_values_trim_fraction=a_values_trim_fraction,
+                                           weighted=do_weighting)
 
         # No point testing bugs in R
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalise(df, sum_trim=sum_trim, do_weighting=do_weighting)
+        py_answer = tmm_normalisation_factors(df, a_values_trim_fraction=a_values_trim_fraction,
+                                              weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
     @given(floats(min_value=-2, max_value=2), booleans())
     def test_different_a_cutoff(self, a_cutoff, do_weighting):
         df = load_arabidopsis()
 
-        r_answer = r_edger_calcNormFactors(df, sum_trim=a_cutoff,
-                                           do_weighting=do_weighting)
+        r_answer = r_edger_calcNormFactors(df, a_values_trim_fraction=a_cutoff,
+                                           weighted=do_weighting)
 
         # No point testing bugs in R
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalise(df, sum_trim=a_cutoff, do_weighting=do_weighting)
+        py_answer = tmm_normalisation_factors(df, a_values_trim_fraction=a_cutoff, weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
 
@@ -71,13 +76,13 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
     def test_different_ref_column(self, ref_col, do_weighting):
         df = load_arabidopsis()
         r_answer = r_edger_calcNormFactors(df, ref_column=ref_col,
-                                           do_weighting=do_weighting)
+                                           weighted=do_weighting)
 
         # No point testing bugs in R
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalise(df, ref_column=ref_col, do_weighting=do_weighting)
+        py_answer = tmm_normalisation_factors(df, ref_column=ref_col, weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
     @given(
@@ -88,8 +93,8 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
         booleans()
     )
     def test_all_at_once(self,
-                         log_ratio_trim,
-                         sum_trim,
+                         m_values_trim_fraction,
+                         a_values_trim_fraction,
                          a_cutoff,
                          ref_column,
                          do_weighting
@@ -97,20 +102,20 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
 
         df = load_arabidopsis()
         r_answer = r_edger_calcNormFactors(df,
-                                           log_ratio_trim=log_ratio_trim,
-                                           sum_trim=sum_trim,
+                                           m_values_trim_fraction=m_values_trim_fraction,
+                                           a_values_trim_fraction=a_values_trim_fraction,
                                            a_cutoff=a_cutoff,
                                            ref_column=ref_column,
-                                           do_weighting=do_weighting)
+                                           weighted=do_weighting)
 
         # No point testing bugs in R
         assume(not np.any(np.isinf(r_answer)))
         assume(not np.any(np.isnan(r_answer)))
 
-        py_answer = tmm_normalise(df,
-                                  log_ratio_trim=log_ratio_trim,
-                                  sum_trim=sum_trim,
-                                  a_cutoff=a_cutoff,
-                                  ref_column=ref_column,
-                                  do_weighting=do_weighting)
+        py_answer = tmm_normalisation_factors(df,
+                                              m_values_trim_fraction=m_values_trim_fraction,
+                                              a_values_trim_fraction=a_values_trim_fraction,
+                                              a_cutoff=a_cutoff,
+                                              ref_column=ref_column,
+                                              weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)

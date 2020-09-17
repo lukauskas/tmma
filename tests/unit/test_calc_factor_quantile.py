@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_allclose
-from tmma.tmm import _calc_factor_quantile
+from tmma.normalisation.tmm import _calc_factor_quantile
 
 
 class TestCalcFactorQuantile(unittest.TestCase):

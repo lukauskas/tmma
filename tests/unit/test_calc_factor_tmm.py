@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
-from tmma.tmm import _calc_factor_tmm, _tmm_trim
+from tmma.normalisation.tmm import two_sample_tmm, tmm_trim_mask
 from tmma.warnings import InfiniteWeightsWarning
 
 
@@ -22,7 +22,7 @@ class TestCalcFactorTMM(unittest.TestCase):
 
         # From R
         expected_answer = 0.9821526
-        actual_answer = _calc_factor_tmm(obs, ref)
+        actual_answer = two_sample_tmm(obs, ref)
 
         self.assertTrue(np.isclose(expected_answer, actual_answer, rtol=1e-06, atol=0),
                         f'{expected_answer} != {actual_answer}')
@@ -45,9 +45,9 @@ class TestCalcFactorTMM(unittest.TestCase):
 
         # From R
         expected_answer = 1.768855
-        actual_answer = _calc_factor_tmm(obs, ref,
-                                         lib_size_obs=obs_lib_size,
-                                         lib_size_ref=ref_lib_size)
+        actual_answer = two_sample_tmm(obs, ref,
+                                       lib_size_obs=obs_lib_size,
+                                       lib_size_ref=ref_lib_size)
 
         self.assertTrue(np.isclose(expected_answer, actual_answer, rtol=1e-06, atol=0),
                         f'{expected_answer} != {actual_answer}')
@@ -57,12 +57,12 @@ class TestCalcFactorTMM(unittest.TestCase):
         ref = np.array([4,5,6])
 
         # second library size is zero
-        self.assertRaises(ValueError, _calc_factor_tmm, obs, ref, 1, 0)
+        self.assertRaises(ValueError, two_sample_tmm, obs, ref, 1, 0)
 
         # second library size is zero (implicitly)
-        self.assertRaises(ValueError, _calc_factor_tmm, obs, np.array([0, 0, 0]))
+        self.assertRaises(ValueError, two_sample_tmm, obs, np.array([0, 0, 0]))
 
-    def test_with_custom_log_ratio_trim(self):
+    def test_with_custom_m_values_trim_fraction(self):
 
         # Poisson with lambda=7.2
         obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
@@ -75,16 +75,16 @@ class TestCalcFactorTMM(unittest.TestCase):
                         3, 0, 6, 4, 4, 7])
 
         # Custom trim
-        log_ratio_trim = 0.2
+        m_values_trim_fraction = 0.2
 
         # From R
         expected_answer = 1.023713
-        actual_answer = _calc_factor_tmm(obs, ref, log_ratio_trim=log_ratio_trim)
+        actual_answer = two_sample_tmm(obs, ref, m_values_trim_fraction=m_values_trim_fraction)
 
         self.assertTrue(np.isclose(expected_answer, actual_answer, rtol=1e-06, atol=0),
                         f'{expected_answer} != {actual_answer}')
 
-    def test_with_custom_sum_trim(self):
+    def test_with_custom_a_values_trim_fraction(self):
 
         # Poisson with lambda=7.2
         obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
@@ -97,11 +97,11 @@ class TestCalcFactorTMM(unittest.TestCase):
                         3, 0, 6, 4, 4, 7])
 
         # Custom trim
-        sum_trim = 0.1
+        a_values_trim_fraction = 0.1
 
         # From R
         expected_answer = 0.955578
-        actual_answer = _calc_factor_tmm(obs, ref, sum_trim=sum_trim)
+        actual_answer = two_sample_tmm(obs, ref, a_values_trim_fraction=a_values_trim_fraction)
 
         self.assertTrue(np.isclose(expected_answer, actual_answer, rtol=1e-06, atol=0),
                         f'{expected_answer} != {actual_answer}')
@@ -124,7 +124,7 @@ class TestCalcFactorTMM(unittest.TestCase):
 
         # From R
         expected_answer = 0.8056739
-        actual_answer = _calc_factor_tmm(obs, ref, a_cutoff=a_cutoff)
+        actual_answer = two_sample_tmm(obs, ref, a_cutoff=a_cutoff)
 
         self.assertTrue(np.isclose(expected_answer, actual_answer, rtol=1e-06, atol=0),
                         f'{expected_answer} != {actual_answer}')
@@ -146,13 +146,13 @@ class TestCalcFactorTMM(unittest.TestCase):
 
         # From R
         expected_answer = 0.9653673
-        actual_answer = _calc_factor_tmm(obs, ref, do_weighting=do_weighting)
+        actual_answer = two_sample_tmm(obs, ref, weighted=do_weighting)
 
         self.assertTrue(np.isclose(expected_answer, actual_answer, rtol=1e-06, atol=0),
                         f'{expected_answer} != {actual_answer}')
 
 
-    def test_tmm_trim_default_params(self):
+    def testtmm_trim_mask_default_params(self):
         m_values = [
             0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
             0.8744691, 2.0000000, 1.5849625, 2.5849625, 1.8073549, 1.3219281,
@@ -173,8 +173,8 @@ class TestCalcFactorTMM(unittest.TestCase):
             -4.740179, -4.266412, -3.947697, -4.143856, -3.914140, -4.240179
         ]
 
-        log_ratio_trim = .3
-        sum_trim = 0.05
+        m_values_trim_fraction = .3
+        a_values_trim_fraction = 0.05
 
         expected_keep = [
             False, False, False, False, False, False, False, False, False, False, False, True,
@@ -183,13 +183,13 @@ class TestCalcFactorTMM(unittest.TestCase):
             True, True, False, True, False, True, False, False, False, True, False, False,
         ]
 
-        actual_keep = _tmm_trim(m_values, a_values,
-                                log_ratio_trim=log_ratio_trim,
-                                sum_trim=sum_trim)
+        actual_keep = tmm_trim_mask(m_values, a_values,
+                                m_values_trim_fraction=m_values_trim_fraction,
+                                a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
 
-    def test_tmm_trim_default_params_edge_case(self):
+    def testtmm_trim_mask_default_params_edge_case(self):
 
         m_values = [
             0.169925, -1., -0.73696559, -3., -0.22239242, 0.,
@@ -215,8 +215,8 @@ class TestCalcFactorTMM(unittest.TestCase):
              -4.14385619, -3.91414038, -4.24017873
         ]
 
-        log_ratio_trim = .3
-        sum_trim = 0.05
+        m_values_trim_fraction = .3
+        a_values_trim_fraction = 0.05
 
         expected_keep = [
             False, False, False, False, False, False, False, False, False, False, False, True,
@@ -225,14 +225,14 @@ class TestCalcFactorTMM(unittest.TestCase):
             True, True, False, True, False, True, False, False, False, True, False, False,
         ]
 
-        actual_keep = _tmm_trim(m_values, a_values,
-                                log_ratio_trim=log_ratio_trim,
-                                sum_trim=sum_trim)
+        actual_keep = tmm_trim_mask(m_values, a_values,
+                                m_values_trim_fraction=m_values_trim_fraction,
+                                a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
 
     @unittest.skip("This is probably due to bug in R")
-    def test_tmm_trim_another_edge_case(self):
+    def testtmm_trim_mask_another_edge_case(self):
 
         m_values = [
             -0.227135291, -0.061622305, -0.002585016, 0.020333359, 0.052548715,
@@ -245,21 +245,21 @@ class TestCalcFactorTMM(unittest.TestCase):
             -3.898290
         ]
 
-        log_ratio_trim = .3
-        sum_trim = 0.05
+        m_values_trim_fraction = .3
+        a_values_trim_fraction = 0.05
 
         expected_keep = [
             False, False, True, True, True, False, False, True, False, False, False, True,
             True, False, True,
         ]
 
-        actual_keep = _tmm_trim(m_values, a_values,
-                                log_ratio_trim=log_ratio_trim,
-                                sum_trim=sum_trim)
+        actual_keep = tmm_trim_mask(m_values, a_values,
+                                m_values_trim_fraction=m_values_trim_fraction,
+                                a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
 
-    def test_tmm_trim_custom_log_ratio_trim(self):
+    def testtmm_trim_mask_custom_m_values_trim_fraction(self):
         m_values = [
             0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
             0.8744691, 2.0000000, 1.5849625, 2.5849625, 1.8073549, 1.3219281,
@@ -280,8 +280,8 @@ class TestCalcFactorTMM(unittest.TestCase):
             -4.740179, -4.266412, -3.947697, -4.143856, -3.914140, -4.240179
         ]
 
-        log_ratio_trim = .2
-        sum_trim = 0.05
+        m_values_trim_fraction = .2
+        a_values_trim_fraction = 0.05
 
         expected_keep = [
             False, False, False, False, False, False, False, False, True, False, False, True,
@@ -290,13 +290,13 @@ class TestCalcFactorTMM(unittest.TestCase):
             True, True, True, True, False, True, False, True, True, True, True, False,
         ]
 
-        actual_keep = _tmm_trim(m_values, a_values,
-                                log_ratio_trim=log_ratio_trim,
-                                sum_trim=sum_trim)
+        actual_keep = tmm_trim_mask(m_values, a_values,
+                                m_values_trim_fraction=m_values_trim_fraction,
+                                a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
 
-    def test_tmm_trim_custom_sum_trim(self):
+    def testtmm_trim_mask_custom_a_values_trim_fraction(self):
         m_values = [
             0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
             0.8744691, 2.0000000, 1.5849625, 2.5849625, 1.8073549, 1.3219281,
@@ -317,8 +317,8 @@ class TestCalcFactorTMM(unittest.TestCase):
             -4.740179, -4.266412, -3.947697, -4.143856, -3.914140, -4.240179
         ]
 
-        log_ratio_trim = .3
-        sum_trim = 0.1
+        m_values_trim_fraction = .3
+        a_values_trim_fraction = 0.1
 
         expected_keep = [
             False, False, False, False, False, False, False, False, False, False, False, True,
@@ -327,9 +327,9 @@ class TestCalcFactorTMM(unittest.TestCase):
             True, False, False, True, False, True, False, False, False, True, False, False,
         ]
 
-        actual_keep = _tmm_trim(m_values, a_values,
-                                log_ratio_trim=log_ratio_trim,
-                                sum_trim=sum_trim)
+        actual_keep = tmm_trim_mask(m_values, a_values,
+                                m_values_trim_fraction=m_values_trim_fraction,
+                                a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
 
@@ -338,7 +338,7 @@ class TestCalcFactorTMM(unittest.TestCase):
         obs = np.array([0, 0])
         ref = np.array([0, 0])
 
-        self.assertRaises(ValueError, _calc_factor_tmm, obs, ref)
+        self.assertRaises(ValueError, two_sample_tmm, obs, ref)
 
     def test_almost_zero_edge_case(self):
 
@@ -346,7 +346,7 @@ class TestCalcFactorTMM(unittest.TestCase):
         ref = np.array([1, 1])
 
         expected_result = 1.036271
-        actual_result = _calc_factor_tmm(obs, ref)
+        actual_result = two_sample_tmm(obs, ref)
 
         assert_allclose(expected_result, actual_result, rtol=1e-6)
 
@@ -367,11 +367,11 @@ class TestCalcFactorTMM(unittest.TestCase):
         expected_result_no_weighting = 1.414214
 
         with self.assertWarns(InfiniteWeightsWarning) as cm:
-            actual_result = _calc_factor_tmm(obs, ref, ls_obs, ls_ref)
+            actual_result = two_sample_tmm(obs, ref, ls_obs, ls_ref)
 
         assert_allclose(expected_result, actual_result, rtol=1e-6)
 
-        actual_result_no_weighting = _calc_factor_tmm(obs, ref, ls_obs, ls_ref, do_weighting=False)
+        actual_result_no_weighting = two_sample_tmm(obs, ref, ls_obs, ls_ref, weighted=False)
         assert_allclose(expected_result_no_weighting, actual_result_no_weighting, rtol=1e-6)
 
     def test_data_type_edge_case(self):
@@ -390,14 +390,14 @@ class TestCalcFactorTMM(unittest.TestCase):
         expected_result = 0.8055355
 
         # This will work
-        actual_result_float = _calc_factor_tmm(obs_float, ref_float, ls_obs, ls_ref)
+        actual_result_float = two_sample_tmm(obs_float, ref_float, ls_obs, ls_ref)
         assert_allclose(expected_result, actual_result_float, rtol=1e-6)
 
         # At the time of writing this somehow fails
-        actual_result_uint = _calc_factor_tmm(obs_uint32, ref_uint32, ls_obs, ls_ref)
+        actual_result_uint = two_sample_tmm(obs_uint32, ref_uint32, ls_obs, ls_ref)
         assert_allclose(expected_result, actual_result_uint, rtol=1e-6)
 
-    @unittest.skip("See test_tmm_trim_another_edge_case")
+    @unittest.skip("See testtmm_trim_mask_another_edge_case")
     def test_hypothesis_failing_case(self):
 
         # This case was discovered by hypothesis
@@ -407,6 +407,6 @@ class TestCalcFactorTMM(unittest.TestCase):
                         494., 470., 532., 510.])
 
         expected_answer = 1.020364
-        actual_answer = _calc_factor_tmm(obs, ref)
+        actual_answer = two_sample_tmm(obs, ref)
 
         assert_allclose(expected_answer, actual_answer, rtol=1e-6)
