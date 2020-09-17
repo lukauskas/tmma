@@ -58,7 +58,7 @@ class TestAgainstArabidopsisDataset(unittest.TestCase):
                                               weighted=do_weighting)
         assert_allclose(r_answer, py_answer, rtol=REL_TOL, atol=ABS_TOL)
 
-    @given(reasonable_floats(min_value=-2, max_value=2), booleans())
+    @given(reasonable_floats(min_value=-18, max_value=-10), booleans())
     def test_different_a_cutoff(self, a_cutoff, do_weighting):
         df = load_arabidopsis()
 
