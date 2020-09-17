@@ -1,0 +1,1 @@
+TMMA_ARRAY_DTYPE = 'd'  # double
