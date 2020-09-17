@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+import pandas as pd
 from numpy.testing import assert_array_equal, assert_allclose
 from tmma.normalisation.tmm import two_sample_tmm, tmm_trim_mask
 from tmma.warnings import InfiniteWeightsWarning
@@ -184,10 +185,55 @@ class TestCalcFactorTMM(unittest.TestCase):
         ]
 
         actual_keep = tmm_trim_mask(m_values, a_values,
-                                m_values_trim_fraction=m_values_trim_fraction,
-                                a_values_trim_fraction=a_values_trim_fraction)
+                                    m_values_trim_fraction=m_values_trim_fraction,
+                                    a_values_trim_fraction=a_values_trim_fraction)
 
         assert_array_equal(expected_keep, actual_keep)
+
+    def test_tmm_mask_respects_indices(self):
+        m_values = [
+            0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
+        ]
+        a_values = [
+            -3.558894, -4.558894, -4.690411, -5.143856, -3.947697, -3.836501,
+        ]
+
+        m_values = pd.Series(m_values, index=['a', 'b', 'c', 'd', 'e', 'f'])
+        m_values.index.name = 'random_letter'
+        a_values = pd.Series(a_values, index=m_values.index)
+
+        ans = tmm_trim_mask(m_values, a_values)
+        self.assertIsInstance(ans, pd.Series)
+        self.assertTrue(m_values.index.equals(ans.index))
+
+    def test_tmm_mask_returns_named_series(self):
+        m_values = [
+            0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
+        ]
+        a_values = [
+            -3.558894, -4.558894, -4.690411, -5.143856, -3.947697, -3.836501,
+        ]
+
+        m_values = pd.Series(m_values, index=['a', 'b', 'c', 'd', 'e', 'f'])
+        m_values.index.name = 'random_letter'
+        a_values = pd.Series(a_values, index=m_values.index)
+
+        ans = tmm_trim_mask(m_values, a_values)
+        self.assertEqual(ans.name, 'considered_for_tmm')
+
+    def test_tmm_mask_raises_error_on_index_mismatch(self):
+        m_values = [
+            0.1699250, -1.0000000, -0.7369656, -3.0000000, -0.2223924, 0.0000000,
+        ]
+        a_values = [
+            -3.558894, -4.558894, -4.690411, -5.143856, -3.947697, -3.836501,
+        ]
+
+        m_values = pd.Series(m_values, index=['a', 'b', 'c', 'd', 'e', 'f'])
+        m_values.index.name = 'random_letter'
+        a_values = pd.Series(a_values, index=['g', 'i', 'j', 'k', 'l', 'm'])
+
+        self.assertRaises(ValueError, tmm_trim_mask, m_values, a_values)
 
     def testtmm_trim_mask_default_params_edge_case(self):
 

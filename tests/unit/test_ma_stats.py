@@ -1,9 +1,18 @@
 import unittest
 
 import numpy as np
+import pandas as pd
 from numpy.testing import assert_allclose, assert_array_equal
 from tmma.ma.stats import ma_statistics, asymptotic_variance
 from tmma.warnings import AsymptoticVarianceWarning
+
+ARRAY_ONE = np.array(
+    [9, 3, 11, 3, 1, 6, 7, 11, 8, 9, 12, 7, 10, 8, 7, 9, 6, 9, 7, 6, 6, 5, 11, 10, 13, 7, 9, 7, 6,
+     4, 3, 6, 6, 5, 11, 8, 7, 5, 11, 11, 10, 13, 6, 7, 9, 12, 7, 8, 11, 4])
+
+ARRAY_TWO = np.array(
+    [8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2, 5, 1, 4, 6, 3, 5, 8, 3, 8, 4,
+     2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2, 3, 0, 6, 4, 4, 7])
 
 
 class TestMAStats(unittest.TestCase):
@@ -11,14 +20,10 @@ class TestMAStats(unittest.TestCase):
     def test_with_standard_parameters(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([ 9,  3, 11,  3,  1,  6,  7, 11,  8,  9, 12,  7, 10,  8,  7,  9,  6,
-                         9,  7,  6,  6,  5, 11, 10, 13,  7,  9,  7,  6,  4,  3,  6,  6,  5,
-                        11,  8,  7,  5, 11, 11, 10, 13,  6,  7,  9, 12,  7,  8, 11,  4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         obs_lib_size = float(np.sum(obs))
         ref_lib_size = float(np.sum(ref))
@@ -47,6 +52,11 @@ class TestMAStats(unittest.TestCase):
              -5.768514
         ]
 
+        actual_m, actual_a = ma_statistics(obs, ref)
+
+        assert_allclose(actual_m, expected_m, rtol=1e-06)
+        assert_allclose(actual_a, expected_a, rtol=1e-06)
+
         actual_m, actual_a = ma_statistics(obs, ref,
                                            lib_size_obs=obs_lib_size,
                                            lib_size_ref=ref_lib_size)
@@ -57,14 +67,10 @@ class TestMAStats(unittest.TestCase):
     def test_with_custom_lib_sizes(self):
 
         # Poisson with lambda=7.2
-        obs = np.array([9, 3, 11, 3, 1, 6, 7, 11, 8, 9, 12, 7, 10, 8, 7, 9, 6,
-                        9, 7, 6, 6, 5, 11, 10, 13, 7, 9, 7, 6, 4, 3, 6, 6, 5,
-                        11, 8, 7, 5, 11, 11, 10, 13, 6, 7, 9, 12, 7, 8, 11, 4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         obs_lib_size = 100.0
         ref_lib_size = 100.0
@@ -102,14 +108,10 @@ class TestMAStats(unittest.TestCase):
 
     def test_asymptotic_variance_standard_libsize(self):
         # Poisson with lambda=7.2
-        obs = np.array([9, 3, 11, 3, 1, 6, 7, 11, 8, 9, 12, 7, 10, 8, 7, 9, 6,
-                        9, 7, 6, 6, 5, 11, 10, 13, 7, 9, 7, 6, 4, 3, 6, 6, 5,
-                        11, 8, 7, 5, 11, 11, 10, 13, 6, 7, 9, 12, 7, 8, 11, 4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         obs_lib_size = float(np.sum(obs))
         ref_lib_size = float(np.sum(ref))
@@ -126,19 +128,18 @@ class TestMAStats(unittest.TestCase):
             0.3856220
         ]
 
+        actual_v = asymptotic_variance(obs, ref)
+        assert_allclose(actual_v, expected_v, rtol=1e-06)
+
         actual_v = asymptotic_variance(obs, ref, obs_lib_size, ref_lib_size)
         assert_allclose(actual_v, expected_v, rtol=1e-06)
 
     def test_asymptotic_variance_custom_libsize(self):
         # Poisson with lambda=7.2
-        obs = np.array([9, 3, 11, 3, 1, 6, 7, 11, 8, 9, 12, 7, 10, 8, 7, 9, 6,
-                        9, 7, 6, 6, 5, 11, 10, 13, 7, 9, 7, 6, 4, 3, 6, 6, 5,
-                        11, 8, 7, 5, 11, 11, 10, 13, 6, 7, 9, 12, 7, 8, 11, 4])
+        obs = ARRAY_ONE
 
         # Poisson with lambda=4.3
-        ref = np.array([8, 6, 0, 5, 8, 7, 7, 6, 2, 3, 2, 2, 4, 5, 4, 4, 4, 6, 6, 5, 7, 2,
-                        5, 1, 4, 6, 3, 5, 8, 3, 8, 4, 2, 4, 4, 3, 2, 4, 5, 4, 5, 2, 4, 2,
-                        3, 0, 6, 4, 4, 7])
+        ref = ARRAY_TWO
 
         obs_lib_size = 100.0
         ref_lib_size = 100.0
@@ -194,3 +195,96 @@ class TestMAStats(unittest.TestCase):
 
         with self.assertWarns(AsymptoticVarianceWarning) as cm:
             asymptotic_variance(obs_float, ref_float, ls_obs, ls_ref)
+
+    def test_ma_respect_indices(self):
+
+        obs = ARRAY_ONE
+        ref = ARRAY_TWO
+
+        obs = pd.Series(obs,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+        obs.index.name = 'some_index'
+
+        ref = pd.Series(ref,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+
+        m, a = ma_statistics(obs, ref)
+        self.assertIsInstance(m, pd.Series)
+        self.assertTrue(obs.index.equals(m.index))
+
+        self.assertIsInstance(a, pd.Series)
+        self.assertTrue(obs.index.equals(a.index))
+
+    def test_ma_returns_named_series(self):
+
+        obs = ARRAY_ONE
+        ref = ARRAY_TWO
+
+        obs = pd.Series(obs,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+
+        ref = pd.Series(ref,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+
+        m, a = ma_statistics(obs, ref)
+        self.assertEqual(m.name, 'm_values')
+        self.assertEqual(a.name, 'a_values')
+
+    def test_ma_raises_error_when_indices_mismatch(self):
+
+        obs = ARRAY_ONE
+        ref = ARRAY_TWO
+
+        obs = pd.Series(obs,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+
+        ref = pd.Series(ref,
+                        index=[f'ref-item{i}' for i in range(len(obs))])
+
+        self.assertRaises(ValueError, ma_statistics, obs, ref)
+
+
+    def test_asymptotic_variance_respects_indices(self):
+
+        obs = ARRAY_ONE
+        ref = ARRAY_TWO
+
+        obs = pd.Series(obs,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+        obs.index.name = 'some_index'
+
+        ref = pd.Series(ref,
+                        index=obs.index)
+
+        v = asymptotic_variance(obs, ref)
+        self.assertIsInstance(v, pd.Series)
+        self.assertTrue(obs.index.equals(v.index))
+
+    def test_asymptotic_variance_returns_named_series(self):
+
+        obs = ARRAY_ONE
+        ref = ARRAY_TWO
+
+        obs = pd.Series(obs,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+
+        ref = pd.Series(ref,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+
+        v = asymptotic_variance(obs, ref)
+        self.assertEqual(v.name, 'asymptotic_variance')
+
+    def test_ma_raises_error_when_indices_mismatch(self):
+
+        obs = ARRAY_ONE
+        ref = ARRAY_TWO
+
+        obs = pd.Series(obs,
+                        index=[f'obs-item{i}' for i in range(len(obs))])
+
+        ref = pd.Series(ref,
+                        index=[f'ref-item{i}' for i in range(len(obs))])
+
+        self.assertRaises(ValueError, asymptotic_variance, obs, ref)
+
+

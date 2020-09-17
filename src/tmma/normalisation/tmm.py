@@ -2,7 +2,9 @@ import warnings
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from scipy.stats import rankdata
+from tmma.common import validate_series_indices
 from tmma.constants import TMMA_ARRAY_DTYPE
 from tmma.ma.stats import ma_statistics, asymptotic_variance
 from tmma.warnings import InfiniteWeightsWarning
@@ -47,6 +49,7 @@ def tmm_trim_mask(m_values,
             True, if value should be kept for mean calculation
             False, if value should not be considered for mean calculation.
     """
+    index = validate_series_indices(m_values, a_values)
 
     # This is the actual TMM
     n = len(m_values)
@@ -71,6 +74,8 @@ def tmm_trim_mask(m_values,
     keep = (m_ranks >= lowest_m_rank) & (m_ranks <= highest_m_rank)
     keep &= (a_ranks >= lowest_s_rank) & (a_ranks <= highest_s_rank)
 
+    if index is not None:
+        keep = pd.Series(keep, index=index, name='considered_for_tmm')
     return keep
 
 def two_sample_tmm(obs,
@@ -202,6 +207,10 @@ def _tmm_normalisation_factors_unscaled(counts,
     :return: Numpy array of normalisation factors from TMM.
     """
 
+    column_names = None
+    if isinstance(counts, pd.DataFrame):
+        column_names = counts.columns
+
     counts = np.asarray(counts, dtype=TMMA_ARRAY_DTYPE)
 
     if np.isnan(counts).any() or np.isinf(counts).any():
@@ -251,6 +260,11 @@ def _tmm_normalisation_factors_unscaled(counts,
 
         factors.append(f_col)
     factors = np.array(factors)
+
+    # If we had a pandas DataFrame as input, return column names
+    if column_names is not None:
+        factors = pd.Series(factors, index=column_names)
+
     return factors
 
 def tmm_normalisation_factors(counts,
@@ -268,6 +282,7 @@ def tmm_normalisation_factors(counts,
 
     :param counts: numpy array of raw (unnormalised) counts for each of the samples.
                    Genes in rows, samples in columns.
+                   pandas DataFrames are also supported
     :param lib_sizes: (optional) numpy array of library sizes.
                       Should be in the same order as columns of `counts`
     :param ref_column: (optional) reference column to use
@@ -282,7 +297,6 @@ def tmm_normalisation_factors(counts,
                           default: True (to match R behaviour)
     :return:
     """
-
     factors = _tmm_normalisation_factors_unscaled(counts,
                                                   lib_sizes=lib_sizes,
                                                   ref_column=ref_column,

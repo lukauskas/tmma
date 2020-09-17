@@ -141,3 +141,14 @@ class TestTMMNormalisation(unittest.TestCase):
 
         actual_answer = scale_tmm_factors(factors_unscaled)
         assert_allclose(actual_answer, expected_answer)
+
+    def test_colnames_are_respected_when_providing_a_dataframe(self):
+        counts = np.array([[1, 2, 3, 4],
+                           [2, 3, 4, 5]])
+
+        counts = pd.DataFrame(counts, columns=['a', 'b', 'c', 'd'])
+        counts.columns.name = 'random_letter'
+
+        answer = tmm_normalisation_factors(counts)
+        self.assertIsInstance(answer, pd.Series)
+        self.assertTrue(counts.columns.equals(answer.index))

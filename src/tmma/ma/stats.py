@@ -1,14 +1,16 @@
 import warnings
 
 import numpy as np
+import pandas as pd
+from tmma.common import validate_series_indices
 from tmma.constants import TMMA_ARRAY_DTYPE
 from tmma.warnings import AsymptoticVarianceWarning
 
 
 def ma_statistics(obs,
                   ref,
-                  lib_size_obs: float,
-                  lib_size_ref: float,
+                  lib_size_obs: float = None,
+                  lib_size_ref: float = None,
                   ):
     """
     Calculates the M and A values for two datasets (obs and ref)
@@ -24,8 +26,18 @@ def ma_statistics(obs,
     :return: tuple (m, a)
     """
 
+    if lib_size_obs is None:
+        lib_size_obs = np.sum(obs)
+    if lib_size_ref is None:
+        lib_size_ref = np.sum(ref)
+
+    lib_size_obs = float(lib_size_obs)
+    lib_size_ref = float(lib_size_ref)
+
     if np.abs(lib_size_obs) <= 1e-6 or np.abs(lib_size_ref) <= 1e-6:
         raise ValueError("One of library sizes is zero")
+
+    index = validate_series_indices(obs, ref)
 
     log2_normed_obs = np.log2(obs) - np.log2(lib_size_obs)
     log2_normed_ref = np.log2(ref) - np.log2(lib_size_ref)
@@ -35,12 +47,16 @@ def ma_statistics(obs,
     # A
     a = 0.5 * (log2_normed_obs + log2_normed_ref)
 
+    if index is not None:
+        m = pd.Series(m, index=index, name='m_values')
+        a = pd.Series(a, index=index, name='a_values')
+
     return m, a
 
 
 def asymptotic_variance(obs, ref,
-                        lib_size_obs: float,
-                        lib_size_ref: float):
+                        lib_size_obs: float = None,
+                        lib_size_ref: float = None):
     """
     Computes asymptotic variance (weights) for TMM
 
@@ -50,9 +66,17 @@ def asymptotic_variance(obs, ref,
     :param lib_size_ref:
     :return:
     """
+
+    index = validate_series_indices(obs, ref)
+
     # Cast to float
     obs = np.asarray(obs, dtype=TMMA_ARRAY_DTYPE)
     ref = np.asarray(ref, dtype=TMMA_ARRAY_DTYPE)
+
+    if lib_size_obs is None:
+        lib_size_obs = np.sum(obs)
+    if lib_size_ref is None:
+        lib_size_ref = np.sum(ref)
 
     lib_size_obs = float(lib_size_obs)
     lib_size_ref = float(lib_size_ref)
@@ -62,4 +86,9 @@ def asymptotic_variance(obs, ref,
                       "Asymptotic variance assumptions may be violated.",
                       AsymptoticVarianceWarning)
 
-    return (lib_size_obs - obs) / lib_size_obs / obs + (lib_size_ref - ref) / lib_size_ref / ref
+    av = (lib_size_obs - obs) / lib_size_obs / obs + (lib_size_ref - ref) / lib_size_ref / ref
+
+    if index is not None:
+        av = pd.Series(av, index=index, name='asymptotic_variance')
+
+    return av
