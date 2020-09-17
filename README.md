@@ -1,5 +1,7 @@
 # tmma - MA plots and TMM for python
 
+[![Build Status](https://travis-ci.com/lukauskas/tmma.svg?branch=master)](https://travis-ci.com/lukauskas/tmma)
+
 Based on the implementation in [`EdgeR` Bioconductor package](https://bioconductor.org/packages/release/bioc/html/edgeR.html).
 
 ## Installation
